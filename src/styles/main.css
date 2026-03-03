@@ -1,0 +1,106 @@
+* {
+  font-family: "Poppins", sans-serif;
+}
+
+/* Background */
+header {
+    background-color: #0f172a;
+}
+
+/* Styke Navbar */
+.navbar {
+  position: fixed;
+  padding: 15px 0;
+  width: 100%;
+  transition: all .4s ease-in-out; 
+  z-index: 9999;
+  background-color: transparent; 
+}
+
+.navbar.color-active {
+  background-color: #ffffff;
+  padding: 15px 0;
+  border-bottom: 2px solid #f1f5f9;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.navbar .navbar-brand {
+  color: white; 
+  transition: .3s;
+}
+
+.navbar.color-active .navbar-brand {
+  color: #0f172a !important; 
+}
+
+.navbar .nav-link a {
+  padding: 5px 10px;
+  font-weight: 500;
+  text-decoration: none;
+  color: white; 
+  transition: .3s;
+}
+
+.navbar.color-active .nav-link a {
+  color: #0f172a !important; 
+}
+
+.navbar .nav-link a:hover,
+.navbar.color-active .nav-link a:hover {
+  color: #22c55e !important;
+}
+
+.navbar .nav-link a:hover {
+  color: #22c55e;
+}
+/* Styke Navbar */
+
+/* Style Header Home Page */
+.homepage .header-box h1 {
+  font-size: 3.2rem;
+  font-weight: 600;
+  color: white;
+}
+
+.homepage .header-box h1 span {
+  font-weight: 700;
+}
+
+.homepage .header-box p {
+  line-height: 2;
+  color: white;
+  font-weight: 100;
+}
+
+.btn-get-started {
+  background-color: #22c55e;
+  border: none ;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 400;
+  transition: 0.3s;
+}
+
+.btn-get-started:hover {
+  background-color: #0b8c3a;
+}
+
+.btn-learn-more {
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3); 
+  color: white; 
+  padding: 10px 18px;
+  border-radius: 8px;
+  font-weight: 400;
+  transition: 0.3s;
+  margin-left: 10px;
+}
+
+.btn-learn-more:hover {
+  background-color: white;
+  color: #0f172a;
+  border-color: white;
+}
+/* Style Header Home Page  */
+

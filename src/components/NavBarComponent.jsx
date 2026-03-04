@@ -52,7 +52,7 @@ const NavBarComponent = () => {
                 );
               })}
             </Nav>
-            <div className='text-center' onClick={() => navigate("/getstarted")}>
+            <div className='text-center' onClick={() => navigate("/login")}>
               <button className='btn-get-started'>Get Started</button>
             </div>
           </Navbar.Collapse>

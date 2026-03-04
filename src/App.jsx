@@ -1,15 +1,26 @@
 import { Routes, Route } from "react-router-dom";
 import NavBarComponent from "./components/NavBarComponent";
 import HomePage from "./pages/HomePage";
-import GetStartedPage from "./pages/GetStartedPage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 function App() {
   return (
     <div className="App">
-      <NavBarComponent />
       <Routes>
-        <Route path="/" Component={HomePage} />
-        <Route path="/getstarted" Component={GetStartedPage} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        
+        <Route
+          path="/"
+          element={
+            <>
+              <NavBarComponent />
+              <HomePage />
+            </>
+          }
+        />
+
       </Routes>
     </div>
   );

@@ -35,7 +35,7 @@ const NavBarComponent = () => {
           <Navbar.Brand href="#home" className="fs-3 fw-bold text-white">Fintrix</Navbar.Brand>
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Nav className="ms-auto me-lg-4">
+            <Nav className="ms-auto me-lg-4 text-center align-items-center">
               {navLinks.map((link) => {
                 return (
                   <div className="nav-link" key={link.id}>
@@ -51,10 +51,11 @@ const NavBarComponent = () => {
                   </div>
                 );
               })}
-            </Nav>
-            <div className='text-center' onClick={() => navigate("/login")}>
+               <div className='text-center' onClick={() => navigate("/login")}>
               <button className='btn-get-started'>Get Started</button>
             </div>
+            </Nav>
+           
           </Navbar.Collapse>
         </Container>
       </Navbar>

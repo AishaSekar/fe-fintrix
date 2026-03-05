@@ -18,9 +18,6 @@ If you are developing a production application, we recommend using TypeScript wi
 
 # Fe-Fintrix - Aplikasi Manajemen Keuangan
 
-## 👥 Tim Pengembang
-- **Naufal Murtadho** (CFS040D6Y052) - Fullstack Developer (Backend & Database)
-- **Aisha Sekar** - Frontend Developer
 
 ## 🏗️ Arsitektur Aplikasi
 

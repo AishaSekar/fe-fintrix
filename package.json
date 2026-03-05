@@ -1,0 +1,32 @@
+{
+  "name": "fe-fintrix-backend",
+  "version": "1.0.0",
+  "description": "Backend API untuk Fe-Fintrix",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "dependencies": {
+    "axios": "^1.13.6",
+    "bcryptjs": "^3.0.3",
+    "bootstrap": "^5.3.8",
+    "colors": "^1.4.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.4",
+    "react-bootstrap": "^2.10.10"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "mongodb-memory-server": "^11.0.1",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
+  }
+}

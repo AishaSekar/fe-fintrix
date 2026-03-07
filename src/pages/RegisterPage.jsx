@@ -1,155 +1,202 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, BarChart2, Sparkles, ShieldCheck } from 'lucide-react';
 import '../styles/auth.css';
 
-const EyeIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-    </svg>
-);
-
-const EyeOffIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-    </svg>
-);
-
-const GoogleIcon = () => (
-    <svg width="20" height="20" viewBox="0 0 48 48">
-        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z" />
-        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z" />
-        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z" />
-        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z" />
-    </svg>
-);
-
 function RegisterPage() {
-    const [pwVisible, setPwVisible] = useState(false);
-    const [confirmPwVisible, setConfirmPwVisible] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [pwVisible, setPwVisible] = useState(false);
+  const [confirmPwVisible, setConfirmPwVisible] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-    };
+  const navigate = useNavigate();
 
-    return (
-        <div className="auth-wrapper">
-            <div className="auth-sidebar">
-                <div className="dot green dot-1" />
-                <div className="dot green dot-2" />
-                <div className="dot blue dot-3" />
-                <div className="dot blue dot-4" />
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
 
-                <h1>Start Your Financial Journey</h1>
-                <p className="sidebar-desc">
-                    Join thousands of users building smarter financial habits.
-                </p>
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
 
-                <ul className="feature-list">
-                    <li>
-                        <div className="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-                            </svg>
-                        </div>
-                        <span>Real-time expense tracking</span>
-                    </li>
-                    <li>
-                        <div className="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
-                            </svg>
-                        </div>
-                        <span>AI-powered financial insights</span>
-                    </li>
-                    <li>
-                        <div className="feature-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-                            </svg>
-                        </div>
-                        <span>Bank-level security</span>
-                    </li>
-                </ul>
+    setLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Registration failed. Please try again.');
+        return;
+      }
+
+      localStorage.setItem('token', data.token);
+      navigate('/dashboard');
+    } catch (err) {
+      setError('Unable to connect to server. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="auth-wrapper">
+      <div className="auth-sidebar">
+        <div className="dot green dot-1" />
+        <div className="dot green dot-2" />
+        <div className="dot blue dot-3" />
+        <div className="dot blue dot-4" />
+
+        <h1>Start Your Financial Journey</h1>
+        <p className="sidebar-desc">
+          Join thousands of users building smarter financial habits.
+        </p>
+
+        <ul className="feature-list">
+          <li>
+            <div className="feature-icon">
+              <BarChart2 size={20} />
+            </div>
+            <span>Real-time expense tracking</span>
+          </li>
+          <li>
+            <div className="feature-icon">
+              <Sparkles size={20} />
+            </div>
+            <span>AI-powered financial insights</span>
+          </li>
+          <li>
+            <div className="feature-icon">
+              <ShieldCheck size={20} />
+            </div>
+            <span>Bank-level security</span>
+          </li>
+        </ul>
+      </div>
+
+      <div className="auth-main">
+        <div className="form-box">
+          <div className="brand">
+            <h2>FINTRIX</h2>
+            <div className="brand-line" />
+          </div>
+
+          <div className="form-header">
+            <h3>Create Your Account</h3>
+            <p>Start your smarter financial journey</p>
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <form onSubmit={handleSubmit}>
+            <div className="field">
+              <label>Full Name</label>
+              <div className="input-box">
+                <input
+                  type="text"
+                  placeholder="Enter your full name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
-            <div className="auth-main">
-                <div className="form-box">
-                    <div className="brand">
-                        <h2>FINTRIX</h2>
-                        <div className="brand-line" />
-                    </div>
-
-                    <div className="form-header">
-                        <h3>Create Your Account</h3>
-                        <p>Start your smarter financial journey</p>
-                    </div>
-
-                    <form onSubmit={handleSubmit}>
-                        <div className="field">
-                            <label>Full Name</label>
-                            <div className="input-box">
-                                <input type="text" placeholder="Enter your full name" />
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label>Email Address</label>
-                            <div className="input-box">
-                                <input type="email" placeholder="Enter your email" />
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label>Password</label>
-                            <div className="input-box">
-                                <input
-                                    type={pwVisible ? 'text' : 'password'}
-                                    placeholder="Create a password"
-                                />
-                                <button type="button" className="toggle-pw" onClick={() => setPwVisible(!pwVisible)}>
-                                    {pwVisible ? <EyeOffIcon /> : <EyeIcon />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="field">
-                            <label>Confirm Password</label>
-                            <div className="input-box">
-                                <input
-                                    type={confirmPwVisible ? 'text' : 'password'}
-                                    placeholder="Confirm your password"
-                                />
-                                <button type="button" className="toggle-pw" onClick={() => setConfirmPwVisible(!confirmPwVisible)}>
-                                    {confirmPwVisible ? <EyeOffIcon /> : <EyeIcon />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="agree-terms">
-                            <input type="checkbox" />
-                            <span>
-                                I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-                            </span>
-                        </div>
-
-                        <button type="submit" className="btn-submit">Create Account</button>
-                    </form>
-
-                    <div className="separator"><span>Or continue with</span></div>
-
-                    <button type="button" className="btn-google">
-                        <GoogleIcon />
-                        Continue with Google
-                    </button>
-
-                    <p className="switch-page">
-                        Already have an account? <Link to="/login">Sign in</Link>
-                    </p>
-                </div>
+            <div className="field">
+              <label>Email Address</label>
+              <div className="input-box">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
             </div>
+
+            <div className="field">
+              <label>Password</label>
+              <div className="input-box">
+                <input
+                  type={pwVisible ? 'text' : 'password'}
+                  placeholder="Create a password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="toggle-pw"
+                  onClick={() => setPwVisible(!pwVisible)}
+                  aria-label={pwVisible ? 'Hide password' : 'Show password'}
+                >
+                  {pwVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="field">
+              <label>Confirm Password</label>
+              <div className="input-box">
+                <input
+                  type={confirmPwVisible ? 'text' : 'password'}
+                  placeholder="Confirm your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="toggle-pw"
+                  onClick={() => setConfirmPwVisible(!confirmPwVisible)}
+                  aria-label={confirmPwVisible ? 'Hide password' : 'Show password'}
+                >
+                  {confirmPwVisible ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <div className="agree-terms">
+              <input type="checkbox" required />
+              <span>
+                I agree to the{' '}
+                <Link to="/terms">Terms of Service</Link> and{' '}
+                <Link to="/privacy">Privacy Policy</Link>
+              </span>
+            </div>
+
+            <button type="submit" className="btn-submit" disabled={loading}>
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </button>
+          </form>
+
+          <div className="separator">
+            <span>Or continue with</span>
+          </div>
+
+          <button type="button" className="btn-google">
+            <img src="/images/google logo.png" alt="Google" width={18} height={18} />
+            Continue with Google
+          </button>
+
+          <p className="switch-page">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
 export default RegisterPage;

@@ -45,13 +45,13 @@ export const getStarted = [
     paragraf: "Sign up in seconds with your email. No credit card required to get started."
   },
    {
-    id: 1,
+    id: 2,
     image:"images/no2.png",
     judul: "Connect & Track",
     paragraf: "Link your accounts or manually add transactions to start tracking your finances."
   },
    {
-    id: 1,
+    id: 3,
     image:"images/no3.png",
     judul: "Analyze & Grow",
     paragraf: "Review insights, set goals, and watch your financial health improve over time."

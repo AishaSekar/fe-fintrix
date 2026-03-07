@@ -3,6 +3,7 @@ import NavBarComponent from "./components/NavBarComponent";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import FooterComponent from "./components/FooterComponent";
 
 function App() {
   return (
@@ -20,7 +21,6 @@ function App() {
             </>
           }
         />
-
       </Routes>
     </div>
   );

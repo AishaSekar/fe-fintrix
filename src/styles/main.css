@@ -12,9 +12,9 @@ header {
   position: fixed;
   padding: 15px 0;
   width: 100%;
-  transition: all .4s ease-in-out; 
+  transition: all 0.4s ease-in-out;
   z-index: 9999;
-  background-color: transparent; 
+  background-color: transparent;
 }
 
 .navbar.color-active {
@@ -25,24 +25,24 @@ header {
 }
 
 .navbar .navbar-brand {
-  color: white; 
-  transition: .3s;
+  color: white;
+  transition: 0.3s;
 }
 
 .navbar.color-active .navbar-brand {
-  color: #0f172a !important; 
+  color: #0f172a !important;
 }
 
 .navbar .nav-link a {
   padding: 5px 10px;
   font-weight: 500;
   text-decoration: none;
-  color: white; 
-  transition: .3s;
+  color: white;
+  transition: 0.3s;
 }
 
 .navbar.color-active .nav-link a {
-  color: #0f172a !important; 
+  color: #0f172a !important;
 }
 
 .navbar .nav-link a:hover,
@@ -73,7 +73,7 @@ header {
 
 .btn-get-started {
   background-color: #22c55e;
-  border: none ;
+  border: none;
   color: white;
   padding: 10px 18px;
   border-radius: 8px;
@@ -87,8 +87,8 @@ header {
 
 .btn-learn-more {
   background-color: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.3); 
-  color: white; 
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
   padding: 10px 18px;
   border-radius: 8px;
   font-weight: 400;
@@ -101,6 +101,49 @@ header {
   color: #0f172a;
   border-color: white;
 }
+
+/* Styling Kartu Dashboard */
+.dashboard-card {
+  background-color: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+}
+
+.stat-box, .savings-box {
+  background-color: #334155;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.text-label {
+  color: #94a3b8; 
+  font-size: 0.9rem;
+}
+
+/* --- Custom Progress Bar --- */
+.custom-progress-container {
+  height: 8px !important;
+  background-color: #475569 !important; 
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.custom-progress-bar {
+  width: 68%; 
+  background-color: #22C55E !important;
+  border-radius: 10px !important;
+  border: none !important;
+}
+
+.dashboard-card {
+  transition: transform 0.3s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Style Header Home Page */
+
 
 /* Style HomePage-lembar-dua */
 .homepage .lembar-dua {
@@ -120,19 +163,19 @@ header {
 .shadow-rounded {
   padding: 40px 30px;
   background-color: white;
-  border-radius: 20px; 
+  border-radius: 20px;
   border: 1px solid #f1f5f9;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); 
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
   height: 100%;
 }
 
 .shadow-rounded:hover {
-  transform: translateY(-5px); 
+  transform: translateY(-5px);
 }
 
 .shadow-rounded img {
-  width: 60px; 
+  width: 60px;
   height: auto;
 }
 
@@ -146,7 +189,7 @@ header {
   color: #64748b;
   line-height: 1.6;
 }
-
+/* Style HomePage-lembar-dua */
 
 @media (max-width: 991px) {
   .homepage .header-box h1 {
@@ -156,7 +199,7 @@ header {
 
 @media (max-width: 768px) {
   .homepage .header-box {
-    text-align: center; 
+    text-align: center;
   }
 
   .homepage .header-box h1 {
@@ -171,12 +214,205 @@ header {
   .btn-learn-more {
     margin-left: 0;
     margin-top: 10px;
-    display: block; 
+    display: block;
     align-items: center;
   }
 
   .btn-get-started {
     display: block;
     align-items: center;
+  }
+}
+
+/* Style Home Page lembar getStarted */
+.lembar-cara {
+  min-height: 80vh;
+  background-color: #f8f8f8;
+  align-items: center;
+  display: flex;
+}
+
+.lembar-cara h2 {
+  margin-bottom: 50px;
+}
+
+.lembar-cara img {
+  width: 80px;
+  height: auto;
+}
+
+.lembar-cara h5 {
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.lembar-cara p {
+  color: #64748b;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+/* Style Home Page lembar getStarted */
+
+/* Style Footer */
+.footer {
+  padding: 80px 0 40px 0;
+  background-color: #0F172A;
+  display: flex;
+  align-items: center; 
+}
+
+.footer .container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 20vh;
+}
+
+.footer h3 {
+  color: #ffffff;
+}
+
+.footer p, hr {
+  color: #b7b7b7;
+}
+.footer-links {
+  display: flex;
+  gap: 25px;
+}
+.footer-links a {
+  text-decoration: none;
+  color: #b7b7b7;
+  transition: 0.3s;
+}
+
+.footer-links a:hover {
+  color: #ffffff;
+}
+
+.footer .col:nth-child(2) {
+  justify-content: flex-end;
+}
+
+.social {
+  display: flex !important; 
+  justify-content: flex-end;
+  gap: 15px;
+}
+.social i {
+  color: #b7b7b7;
+  transition: 0.3s;
+  font-size: 25px;
+}
+
+.social i:hover {
+  color: #ffffff;
+}
+
+/* Style Footer */
+* { font-family: "Inter", sans-serif; }
+header { background-color: #0f172a; }
+
+
+/* Tablet (iPad/Tablet Android) */
+@media (max-width: 991px) {
+  .homepage .header-box {
+    text-align: center;
+    padding-bottom: 50px;
+    padding-top: 100px; 
+  }
+
+  .dashboard-card {
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+/* Mobile (Handphone) */
+@media (max-width: 768px) {
+  .homepage .header-box {
+    padding-top: 100px;
+  }
+  .lembar-cara {
+    padding-top: 40px; 
+    display: block;   
+  }
+
+  .lembar-cara h2 {
+    margin-top: 20px;  
+    margin-bottom: 5px;
+  }
+  
+  .homepage .header-box h1 {
+    font-size: 2.2rem;
+    line-height: 1.2;
+    margin-top: 20px;
+    margin-bottom: 1.5rem; 
+  }
+
+  .homepage .header-box p {
+    font-size: 0.9rem;
+    padding: 0 10px;
+    margin-bottom: 2rem !important; 
+  }
+
+  .homepage .header-box .d-flex.gap-3 {
+    width: 100%;
+    margin-bottom: 3.5rem; 
+  }
+
+  .btn-get-started {
+    width: 100%;
+    margin-bottom: 10px; 
+  }
+
+  .btn-learn-more {
+    width: 100%;
+    margin-left: 0 !important;
+  }
+
+  .dashboard-card {
+    padding: 1.5rem !important;
+    max-width: 100%; 
+  }
+
+  .dashboard-card h2 { font-size: 1.5rem; }
+  .stat-box h4 { font-size: 1.2rem; }
+
+  /* Footer Mobile */
+  .footer {
+    padding: 50px 0;
+    text-align: center;
+  }
+
+  .footer .row:first-child {
+    flex-direction: column;
+    align-items: center !important;
+    gap: 20px;
+  }
+
+  .footer-links {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .footer .row:last-child {
+    flex-direction: column-reverse; 
+    gap: 20px;
+  }
+
+  .social {
+    justify-content: center !important;
+  }
+}
+
+/* Extra Small (HP Kecil) */
+@media (max-width: 480px) {
+  .homepage .header-box h1 {
+    font-size: 1.8rem;
+  }
+  
+  .stat-box {
+    padding: 10px !important;
   }
 }

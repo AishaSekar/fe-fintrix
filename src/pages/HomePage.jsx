@@ -141,7 +141,6 @@ const HomePage = () => {
           </Row>
         </Container>
       </div>
-
       <FooterComponent />
     </div>
   );

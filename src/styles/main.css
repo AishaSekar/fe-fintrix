@@ -17,6 +17,17 @@ header {
   background-color: transparent;
 }
 
+.navbar-nav {
+  display: flex;
+  align-items: center;
+}
+
+.navbar .nav-link {
+  display: flex;
+  align-items: center;
+  padding: 0; 
+}
+
 .navbar.color-active {
   background-color: #ffffff;
   padding: 15px 0;
@@ -71,6 +82,11 @@ header {
   font-weight: 100;
 }
 
+.navbar .btn-get-started {
+  margin-left: 25px;
+  display: inline-block;
+  vertical-align: middle;
+}
 .btn-get-started {
   background-color: #22c55e;
   border: none;
@@ -324,6 +340,16 @@ header { background-color: #0f172a; }
   .dashboard-card {
     max-width: 500px;
     margin: 0 auto;
+  }
+
+  .navbar-nav {
+    padding-top: 20px;
+    gap: 15px; 
+  }
+  
+  .navbar .btn-get-started {
+    margin-left: 0; 
+    width: 100%;  
   }
 }
 

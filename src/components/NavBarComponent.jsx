@@ -52,7 +52,7 @@ const NavBarComponent = () => {
                 );
               })}
                <div className='text-center' onClick={() => navigate("/login")}>
-              <button className='btn-get-started'>Get Started</button>
+              <button className='btn-get-started ms-lg-3'>Get Started</button>
             </div>
             </Nav>
            

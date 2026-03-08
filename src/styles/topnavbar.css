@@ -1,0 +1,71 @@
+
+.top-navbar {
+  width: 100%;
+  z-index: 1050;
+}
+.top-navbar .container-fluid {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important; /* Tambahan padding kanan ekstra sebagai pengaman */
+  padding-right: 40px !important;
+} /* Memastikan area ikon tidak mengecil saat didorong search bar */
+
+.nav-icons,
+.top-navbar .navbar-nav {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-shrink: 0 !important;
+  align-items: center;
+}
+/* Container untuk ikon (Lonceng & Pesan) */
+.icon-wrapper {
+  width: 40px !important;
+  height: 40px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8f9fa; /* Warna abu-abu muda */
+  border-radius: 12px !important; /* Membuat sudut membulat */
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-wrapper:hover {
+  background-color: #e9ecef;
+}
+
+/* Titik notifikasi hijau di atas lonceng */
+.notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #22c55e; /* Warna hijau */
+  border-radius: 50%;
+  border: 2px solid white; /* Outline putih agar terlihat jelas */
+}
+
+.avatar-small {
+  width: 40px !important;
+  height: 40px !important;
+  background: #22c55e;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+.profile-dropdown .dropdown-toggle::after {
+  display: none !important;
+}
+
+.profile-dropdown .dropdown-menu {
+  z-index: 9999 !important;
+  position: absolute !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}

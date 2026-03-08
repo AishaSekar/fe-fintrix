@@ -21,7 +21,7 @@ const FooterComponent = () => {
 
         <Row className="justify-content-between">
           <Col xs="auto" className="mt-3">
-            <p>© 2026 Fintrix. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Fintrix. All rights reserved.</p>
           </Col>
           <Col xs="auto">
           <div className="social mt-3">

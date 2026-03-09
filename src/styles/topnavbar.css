@@ -15,15 +15,9 @@
 .top-navbar .container-fluid {
   display: flex !important;
   flex-direction: row !important;
-<<<<<<< HEAD
-  flex-wrap: nowrap !important; 
-  padding-right: 40px !important;
-} 
-=======
   flex-wrap: nowrap !important;
   padding-right: 40px !important;
 }
->>>>>>> a05f7a5f41a96fcdc30a0bb44f6469567680db24
 
 /* Pastikan area ikon tidak mengecil saat didorong search bar */
 .nav-icons,

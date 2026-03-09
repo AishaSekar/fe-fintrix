@@ -33,7 +33,7 @@ const HomePage = () => {
             </Col>
 
             <Col lg={6} md={10} sm={12} className="mt-5 mt-lg-0 d-flex justify-content-center">
-              <div className="dashboard-card shadow-lg p-4 w-100">
+              <div className="home-card shadow-lg p-4 w-100">
                 <div className="d-flex justify-content-between align-items-center mb-4 text-start">
                   <div>
                     <p className="mb-1 text-label">Total Balance</p>

@@ -119,7 +119,7 @@ header {
 }
 
 /* Styling Kartu Dashboard */
-.dashboard-card {
+.home-card {
   background-color: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
@@ -150,11 +150,11 @@ header {
   border: none !important;
 }
 
-.dashboard-card {
+.home-card {
   transition: transform 0.3s ease;
 }
 
-.dashboard-card:hover {
+.home-card:hover {
   transform: translateY(-5px);
 }
 

@@ -4,11 +4,6 @@ export const navLinks = [
     title: "How it works",
     path: "",
   },
-  {
-    id: 2,
-    title: "Dashboard",
-    path: "/dashboard",
-  },
 ];
 
 export const lembarDua = [

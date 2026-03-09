@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Nav } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
 import {
@@ -6,73 +7,88 @@ import {
   BarChart3,
   Wallet,
   TrendingUp,
+  FileText,
   Bell,
   Settings,
+  X,
 } from "lucide-react";
-
+import { useAuth } from "../context/AuthContext.jsx";
 import "../styles/sidebar.css";
 
-function SidebarComponent() {
+// Daftar menu navigasi sidebar
+// Tiap item punya: path (url tujuan), label (nama menu), icon (komponen lucide)
+const menuItems = [
+  { path: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/transactions", label: "Transaction", icon: Receipt },
+  { path: "/analytics", label: "Analytics", icon: BarChart3 },
+  { path: "/budget", label: "Budget", icon: Wallet },
+  { path: "/investment", label: "Investment", icon: TrendingUp },
+  { path: "/reports", label: "Reports", icon: FileText },
+  { path: "/notifications", label: "Notifications", icon: Bell },
+  { path: "/settings", label: "Settings", icon: Settings },
+];
+
+function SidebarComponent({ isOpen, onClose }) {
+  // Ambil data user dari context (nama, email, inisial)
+  const { user } = useAuth();
+  const displayName = user?.name || "Guest";
+  const displayEmail = user?.email || "guest@example.com";
+  const initial = (displayName || "G").charAt(0).toUpperCase();
+
   return (
-    <div className="sidebar-wrapper">
-      <div className="sidebar-brand">
-        <h2 className="brand-text">FINTRIX</h2>
-        <hr />
-      </div>
+    <>
+      {/* Overlay gelap di belakang sidebar (hanya muncul di mobile) */}
+      {isOpen && (
+        <div className="sidebar-overlay" onClick={onClose} />
+      )}
 
-      <div className="sidebar-nav">
-        <Nav className="flex-column">
-          <NavLink
-            to="/dashboard"
-            className={({ isActive }) =>
-              isActive ? "nav-link active" : "nav-link"
-            }
-          >
-            <LayoutDashboard size={18} className="me-3" />
-            Dashboard
-          </NavLink>
+      {/* Sidebar utama */}
+      <div className={`sidebar-wrapper ${isOpen ? "open" : ""}`}>
+        {/* Header sidebar: logo + tombol close (mobile only) */}
+        <div className="sidebar-brand">
+          <div className="brand-header">
+            <h2 className="brand-text">FINTRIX</h2>
+            {/* Tombol X untuk tutup sidebar di mobile */}
+            <button className="sidebar-close-btn" onClick={onClose}>
+              <X size={22} />
+            </button>
+          </div>
+          <hr />
+        </div>
 
-          <NavLink to="/transactions" className="nav-link">
-            <Receipt size={18} className="me-3" />
-            Transaction
-          </NavLink>
+        {/* Daftar menu navigasi */}
+        <div className="sidebar-nav">
+          <Nav className="flex-column">
+            {menuItems.map((item) => {
+              // Ambil komponen icon dari item
+              const IconComponent = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  className={({ isActive }) =>
+                    isActive ? "nav-link active" : "nav-link"
+                  }
+                  onClick={onClose} // Tutup sidebar setelah klik menu (mobile)
+                >
+                  <IconComponent size={18} className="me-3" />
+                  {item.label}
+                </NavLink>
+              );
+            })}
+          </Nav>
+        </div>
 
-          <NavLink to="/analytics" className="nav-link">
-            <BarChart3 size={18} className="me-3" />
-            Analytics
-          </NavLink>
-
-          <NavLink to="/budget" className="nav-link">
-            <Wallet size={18} className="me-3" />
-            Budget
-          </NavLink>
-
-          <NavLink to="/investment" className="nav-link">
-            <TrendingUp size={18} className="me-3" />
-            Investment
-          </NavLink>
-
-          <NavLink to="/notifications" className="nav-link">
-            <Bell size={18} className="me-3" />
-            Notifications
-          </NavLink>
-
-          <NavLink to="/settings" className="nav-link">
-            <Settings size={18} className="me-3" />
-            Settings
-          </NavLink>
-        </Nav>
-      </div>
-
-      <div className="sidebar-profile">
-        <div className="profile-avatar">A</div>
-
-        <div className="profile-info">
-          <p className="profile-name">Abdie</p>
-          <p className="profile-email">abdie@gmail.com</p>
+        {/* Profil user di bagian bawah sidebar */}
+        <div className="sidebar-profile">
+          <div className="profile-avatar">{initial}</div>
+          <div className="profile-info">
+            <p className="profile-name">{displayName}</p>
+            <p className="profile-email">{displayEmail}</p>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 

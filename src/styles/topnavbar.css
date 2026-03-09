@@ -6,9 +6,9 @@
 .top-navbar .container-fluid {
   display: flex !important;
   flex-direction: row !important;
-  flex-wrap: nowrap !important; /* Tambahan padding kanan ekstra sebagai pengaman */
+  flex-wrap: nowrap !important; 
   padding-right: 40px !important;
-} /* Memastikan area ikon tidak mengecil saat didorong search bar */
+} 
 
 .nav-icons,
 .top-navbar .navbar-nav {
@@ -24,8 +24,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f8f9fa; /* Warna abu-abu muda */
-  border-radius: 12px !important; /* Membuat sudut membulat */
+  background-color: #f8f9fa; 
+  border-radius: 12px !important; 
   cursor: pointer;
   transition: all 0.2s ease;
 }

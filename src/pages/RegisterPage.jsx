@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, BarChart2, Sparkles, ShieldCheck } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import '../styles/auth.css';
 
 function RegisterPage() {
-  const [fullName, setFullName] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -14,6 +15,7 @@ function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { register, googleLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -26,27 +28,15 @@ function RegisterPage() {
 
     setLoading(true);
 
-    try {
-      const res = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fullName, email, password }),
-      });
+    const result = await register({ name, email, password });
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setError(data.message || 'Registration failed. Please try again.');
-        return;
-      }
-
-      localStorage.setItem('token', data.token);
-      navigate('/dashboard');
-    } catch (err) {
-      setError('Unable to connect to server. Please try again.');
-    } finally {
-      setLoading(false);
+    setLoading(false);
+    if (!result.success) {
+      setError(result.error || 'Registration failed. Please try again.');
+      return;
     }
+
+    navigate('/dashboard');
   };
 
   return (
@@ -56,7 +46,7 @@ function RegisterPage() {
         <div className="dot green dot-2" />
         <div className="dot blue dot-3" />
         <div className="dot blue dot-4" />
-
+3
         <h1>Start Your Financial Journey</h1>
         <p className="sidebar-desc">
           Join thousands of users building smarter financial habits.
@@ -105,8 +95,8 @@ function RegisterPage() {
                 <input
                   type="text"
                   placeholder="Enter your full name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   required
                 />
               </div>
@@ -185,7 +175,7 @@ function RegisterPage() {
             <span>Or continue with</span>
           </div>
 
-          <button type="button" className="btn-google">
+          <button type="button" className="btn-google" onClick={googleLogin}>
             <img src="/images/google logo.png" alt="Google" width={18} height={18} />
             Continue with Google
           </button>

@@ -1,15 +1,14 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 
 const AuthContext = createContext();
 
-const STORAGE_KEY = "fintrix_dummy_user";
-const TOKEN_KEY = "fintrix_dummy_token";
+// Mengambil URL dari file .env
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
 
@@ -18,68 +17,87 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // Konfigurasi Axios Global
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        localStorage.removeItem(STORAGE_KEY);
-        localStorage.removeItem(TOKEN_KEY);
-      }
+    axios.defaults.baseURL = API_URL;
+    axios.defaults.withCredentials = true; // Penting untuk mengirim cookie/session
+
+    const token = localStorage.getItem("fintrix_token");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     }
-    setLoading(false);
+    checkAuthStatus();
   }, []);
 
+  const checkAuthStatus = async () => {
+    try {
+      const token = localStorage.getItem("fintrix_token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+      // Panggil endpoint /auth/status yang sudah kamu buat di Backend
+      const response = await axios.get("/auth/status");
+      setUser(response.data.user);
+    } catch (err) {
+      logout(); // Jika token expired atau salah, paksa logout
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const login = async (email, password) => {
-    setError(null);
-    const name = email.split("@")[0];
-    const userData = {
-      id: "dummy-" + Date.now(),
-      name: name.charAt(0).toUpperCase() + name.slice(1),
-      email,
-    };
-    localStorage.setItem(TOKEN_KEY, "dummy-token");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-    setUser(userData);
-    return { success: true, data: userData };
+    try {
+      setError(null);
+      const response = await axios.post("/auth/login", { email, password });
+      
+      const { token, ...userData } = response.data;
+      localStorage.setItem("fintrix_token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      setUser(userData);
+      return { success: true };
+    } catch (err) {
+      const msg = err.response?.data?.message || "Login failed";
+      setError(msg);
+      return { success: false, error: msg };
+    }
   };
 
   const register = async (userData) => {
-    setError(null);
-    const { name, email } = userData;
-    const dummyUser = { id: "dummy-" + Date.now(), name, email };
-    localStorage.setItem(TOKEN_KEY, "dummy-token");
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dummyUser));
-    setUser(dummyUser);
-    return { success: true, data: dummyUser };
+    try {
+      setError(null);
+      const response = await axios.post("/auth/register", userData);
+      
+      const { token, ...data } = response.data;
+      localStorage.setItem("fintrix_token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      setUser(data);
+      return { success: true };
+    } catch (err) {
+      const msg = err.response?.data?.message || "Registration failed";
+      setError(msg);
+      return { success: false, error: msg };
+    }
   };
 
   const logout = async () => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem("fintrix_token");
+    delete axios.defaults.headers.common["Authorization"];
     setUser(null);
   };
 
-  const updateProfile = async (profileData) => {
-    setError(null);
-    const updated = { ...user, ...profileData };
-    setUser(updated);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    return { success: true, data: updated };
+  // Tambahkan fungsi Google Login
+  const googleLogin = () => {
+    // Redirect langsung ke endpoint Passport Google di Backend
+    window.location.href = `${API_URL}/auth/google`;
   };
 
   const value = {
-    user,
-    loading,
-    error,
-    register,
-    login,
-    logout,
-    updateProfile,
+    user, loading, error, register, login, logout, googleLogin,
     isAuthenticated: !!user,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-

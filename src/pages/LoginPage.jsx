@@ -13,7 +13,7 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, googleLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -117,7 +117,7 @@ function LoginPage() {
             <span>Or continue with</span>
           </div>
 
-          <button type="button" className="btn-google">
+          <button type="button" className="btn-google" onClick={googleLogin}>
             <img src="/images/google logo.png" alt="Google" width={18} height={18} />
             Continue with Google
           </button>

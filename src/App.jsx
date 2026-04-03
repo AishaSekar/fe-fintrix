@@ -3,6 +3,7 @@ import NavBarComponent from "./components/NavBarComponent";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import AuthSuccess from "./pages/AuthSuccess";
 import FooterComponent from "./components/FooterComponent";
 import DashboardPage from "./pages/user/DashboardPage.jsx";
 import PrivateRoute from "./components/PrivateRoute.jsx";
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/auth/success" element={<AuthSuccess />} />
         <Route
           path="/dashboard"
           element={

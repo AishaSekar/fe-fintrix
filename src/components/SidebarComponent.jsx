@@ -33,6 +33,7 @@ function SidebarComponent({ isOpen, onClose }) {
   const displayName = user?.name || "Guest";
   const displayEmail = user?.email || "guest@example.com";
   const initial = (displayName || "G").charAt(0).toUpperCase();
+  const photoUrl = user?.profilePicture || user?.avatar || user?.picture || user?.photo || user?.photoUrl || user?.image || user?.profileImageUrl;
 
   return (
     <>
@@ -80,7 +81,11 @@ function SidebarComponent({ isOpen, onClose }) {
 
         {/* Profil user di bagian bawah sidebar */}
         <div className="sidebar-profile">
-          <div className="profile-avatar">{initial}</div>
+          {photoUrl ? (
+            <img src={photoUrl} alt="Profile" className="profile-avatar" style={{ borderRadius: '50%', objectFit: 'cover' }} />
+          ) : (
+            <div className="profile-avatar">{initial}</div>
+          )}
           <div className="profile-info">
             <p className="profile-name">{displayName}</p>
             <p className="profile-email">{displayEmail}</p>

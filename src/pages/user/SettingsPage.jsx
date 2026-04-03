@@ -23,6 +23,9 @@ function SettingsPage() {
     navigate("/login");
   };
 
+  const initial = (user?.name || "G").charAt(0).toUpperCase();
+  const photoUrl = user?.profilePicture || user?.avatar || user?.picture || user?.photo || user?.photoUrl || user?.image || user?.profileImageUrl;
+
   return (
     <div className="d-flex">
       <SidebarComponent isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -37,6 +40,19 @@ function SettingsPage() {
                 <Card className="shadow-sm border-0">
                   <Card.Body>
                     <h5 className="mb-3">Profile</h5>
+                    <div className="d-flex align-items-center mb-4">
+                      {photoUrl ? (
+                        <img src={photoUrl} alt="Profile" style={{ width: '60px', height: '60px', borderRadius: '50%', objectFit: 'cover' }} />
+                      ) : (
+                        <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#28a745', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', fontWeight: 'bold' }}>
+                          {initial}
+                        </div>
+                      )}
+                      <div className="ms-3">
+                        <h6 className="mb-0">{user?.name || "Guest"}</h6>
+                        <small className="text-muted">{user?.email || "guest@example.com"}</small>
+                      </div>
+                    </div>
                     <Form>
                       <Form.Group className="mb-2">
                         <Form.Label>Name</Form.Label>

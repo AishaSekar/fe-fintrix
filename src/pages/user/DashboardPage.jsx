@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../context/AuthContext";
 import SidebarComponent from "../../components/SidebarComponent";
 import TopNavbarComponent from "../../components/TopNavbarComponent";
 import {
@@ -52,17 +53,15 @@ ChartJS.register(
 );
 
 // ===========================================
-// DATA DUMMY
-// Semua data di bawah ini cuma contoh / dummy
-// Nanti bisa diganti dengan data dari API
+// DATA DUMMY (fallback jika API belum ada data)
 // ===========================================
 
-// Data ringkasan keuangan (4 kartu atas)
-const ringkasanKeuangan = {
-  totalBalance: 24580,
-  monthlyIncome: 8240,
-  monthlyExpenses: 3680,
-  savingsPercent: 68,
+const DEFAULT_STATS = {
+  totalBalance: 0,
+  income: 0,
+  expenses: 0,
+  savingsGoal: 0,
+  recentTransactions: [],
 };
 
 // Data transaksi terakhir
@@ -237,8 +236,31 @@ function formatUang(angka) {
 // KOMPONEN UTAMA: DashboardPage
 // ==========================================
 function DashboardPage() {
-  // State buat kontrol buka/tutup sidebar di mobile
+  const { user, getUserStats } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [stats, setStats]             = useState(DEFAULT_STATS);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  // Ambil stats dari API saat komponen mount
+  useEffect(() => {
+    const fetchStats = async () => {
+      setStatsLoading(true);
+      const result = await getUserStats();
+      if (result.success) {
+        setStats(result.data);
+      }
+      setStatsLoading(false);
+    };
+    fetchStats();
+  }, []);
+
+  // Mapping data API ke format ringkasanKeuangan
+  const ringkasanKeuangan = {
+    totalBalance:    stats.totalBalance   ?? 0,
+    monthlyIncome:   stats.income         ?? 0,
+    monthlyExpenses: stats.expenses       ?? 0,
+    savingsPercent:  stats.savingsGoal    ?? 0,
+  };
 
   // Hitung persentase tabungan
   const persen = Math.round(

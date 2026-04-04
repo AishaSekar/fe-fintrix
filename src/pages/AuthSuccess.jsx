@@ -1,5 +1,7 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
+
+const ADMIN_EMAILS = ["admin@fintrix.com@gmail.com"]; // sama dengan AdminRoute.jsx
 
 function AuthSuccess() {
   const location = useLocation();
@@ -9,6 +11,7 @@ function AuthSuccess() {
     const searchParams = new URLSearchParams(location.search);
     const token = searchParams.get("token");
     const refreshToken = searchParams.get("refreshToken");
+    const email = searchParams.get("email"); // dikirim dari backend saat Google login
 
     if (token) {
       // Save tokens to localStorage
@@ -16,10 +19,10 @@ function AuthSuccess() {
       if (refreshToken) {
         localStorage.setItem("fintrix_refresh_token", refreshToken);
       }
-      
-      // Redirect using window.location.href to explicitly reload the app 
-      // and force AuthContext to run its initial effect with the new token.
-      window.location.href = "/dashboard";
+
+      // Cek admin langsung dari email di URL (tanpa fetch tambahan)
+      const isAdmin = email && ADMIN_EMAILS.includes(email.toLowerCase());
+      window.location.href = isAdmin ? "/admin/dashboard" : "/dashboard";
     } else {
       // If no token, redirect to login
       window.location.href = "/login?error=auth_failed";

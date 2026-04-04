@@ -1,27 +1,121 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import SidebarComponent from "../../components/SidebarComponent";
 import TopNavbarComponent from "../../components/TopNavbarComponent";
-import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
+import { Container, Row, Col, Card, Form, Button, Modal, Spinner, Alert } from "react-bootstrap";
 import { useAuth } from "../../context/AuthContext.jsx";
-import { User, Mail, Lock, Eye, EyeOff, LogOut, Trash2, Shield, DollarSign, Globe, Sun, Moon, Monitor, Camera } from "lucide-react";
+import {
+  User, Mail, Lock, Eye, EyeOff, LogOut, Trash2, Shield,
+  DollarSign, Globe, Sun, Moon, Monitor, Camera, CheckCircle, AlertCircle
+} from "lucide-react";
 import "../../styles/SettingsPage.css";
 import "../../styles/animations.css";
 
+// Toast notifikasi kecil
+function Toast({ message, type, onClose }) {
+  return (
+    <div
+      style={{
+        position: "fixed", bottom: "2rem", right: "2rem", zIndex: 9999,
+        background: type === "success" ? "#22c55e" : "#f43f5e",
+        color: "#fff", borderRadius: "12px", padding: "0.8rem 1.4rem",
+        display: "flex", alignItems: "center", gap: "0.6rem",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.15)", fontSize: "0.9rem", fontWeight: 600,
+        animation: "fadeInUp 0.3s ease"
+      }}
+    >
+      {type === "success" ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
+      {message}
+      <button onClick={onClose} style={{ background: "none", border: "none", color: "#fff", marginLeft: "0.5rem", cursor: "pointer", fontSize: "1rem" }}>×</button>
+    </div>
+  );
+}
+
 function SettingsPage() {
-  const { user, logout } = useAuth();
-  const navigate         = useNavigate();
-  const [sidebarOpen, setSidebarOpen]   = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [theme, setTheme]               = useState("light");
+  const { user, logout, updateProfile, deleteAccount, enableTwoFactor, disableTwoFactor } = useAuth();
+  const navigate = useNavigate();
+
+  const [sidebarOpen, setSidebarOpen]     = useState(false);
+  const [showPassword, setShowPassword]   = useState(false);
+  const [theme, setTheme]                 = useState("light");
+
+  // Form state
+  const [name, setName]         = useState(user?.name || "");
+  const [email, setEmail]       = useState(user?.email || "");
+  const [password, setPassword] = useState("");
+  const [currency, setCurrency] = useState("USD");
+  const [language, setLanguage] = useState("en");
+
+  // Loading state per aksi
+  const [savingProfile, setSavingProfile]   = useState(false);
+  const [togglingTwoFa, setTogglingTwoFa]   = useState(false);
+  const [deletingAcc, setDeletingAcc]       = useState(false);
+
+  // Toast
+  const [toast, setToast] = useState(null); // { message, type }
+  const showToast = (message, type = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  // Delete confirm modal
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState("");
+
+  const initial  = (user?.name || "A").charAt(0).toUpperCase();
+  const photoUrl = user?.profilePicture || user?.avatar || user?.picture || user?.photo || user?.photoUrl || user?.image || user?.profileImageUrl;
+
+  // ─── Handlers ──────────────────────────────────────────────────────────────
 
   const handleLogout = async () => {
     await logout();
     navigate("/login");
   };
 
-  const initial  = (user?.name || "A").charAt(0).toUpperCase();
-  const photoUrl = user?.profilePicture || user?.avatar || user?.picture || user?.photo || user?.photoUrl || user?.image || user?.profileImageUrl;
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    setSavingProfile(true);
+    const payload = { name };
+    if (email && email !== user?.email) payload.email = email;
+    if (password) payload.password = password;
+
+    const result = await updateProfile(payload);
+    setSavingProfile(false);
+
+    if (result.success) {
+      setPassword("");
+      showToast("Profile updated successfully!");
+    } else {
+      showToast(result.error || "Failed to update profile", "error");
+    }
+  };
+
+  const handleToggle2FA = async () => {
+    setTogglingTwoFa(true);
+    const result = user?.twoFactorEnabled
+      ? await disableTwoFactor()
+      : await enableTwoFactor();
+    setTogglingTwoFa(false);
+
+    if (result.success) {
+      showToast(`2FA ${user?.twoFactorEnabled ? "disabled" : "enabled"} successfully!`);
+    } else {
+      showToast(result.error || "Failed to toggle 2FA", "error");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== "DELETE") return;
+    setDeletingAcc(true);
+    const result = await deleteAccount();
+    setDeletingAcc(false);
+    if (result.success) {
+      navigate("/login");
+    } else {
+      showToast(result.error || "Failed to delete account", "error");
+      setShowDeleteModal(false);
+    }
+  };
 
   return (
     <div className="d-flex settings-page">
@@ -60,30 +154,74 @@ function SettingsPage() {
                         </div>
                       </div>
                       <div>
-                        <h5 className="fw-bold mb-0 text-dark">{user?.name || "Abdie Rahman"}</h5>
-                        <p className="text-muted small mb-2">{user?.email || "abdie@fintrix.co"}</p>
-                        <Button className="settings-btn-edit-profile" size="sm">Edit Profile</Button>
+                        <h5 className="fw-bold mb-0 text-dark">{user?.name || "User"}</h5>
+                        <p className="text-muted small mb-2">{user?.email || ""}</p>
+                        {user?.isVerified ? (
+                          <span style={{ fontSize: "0.75rem", color: "#22c55e", fontWeight: 600 }}>
+                            <CheckCircle size={13} className="me-1" />Email Verified
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: "0.75rem", color: "#f59e0b", fontWeight: 600 }}>
+                            <AlertCircle size={13} className="me-1" />Email Not Verified
+                          </span>
+                        )}
                       </div>
                     </div>
                   </Card.Body>
                 </Card>
 
-                {/* Quick Actions Card */}
+                {/* Security Card: 2FA */}
                 <Card className="shadow-sm settings-card mb-4 card-hover anim-fade-left anim-d2">
+                  <Card.Body className="p-4">
+                    <h5 className="fw-bold text-dark mb-1">Security</h5>
+                    <p className="text-muted small mb-4">Two-factor authentication</p>
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <div>
+                        <p className="fw-semibold mb-0 small">Two-Factor Auth (2FA)</p>
+                        <p className="text-muted" style={{ fontSize: "0.78rem" }}>
+                          {user?.twoFactorEnabled ? "Currently enabled" : "Currently disabled"}
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={handleToggle2FA}
+                        disabled={togglingTwoFa}
+                        style={{
+                          background: user?.twoFactorEnabled ? "#f43f5e" : "#22c55e",
+                          border: "none", borderRadius: "8px", fontWeight: 600, minWidth: 90
+                        }}
+                      >
+                        {togglingTwoFa
+                          ? <Spinner size="sm" />
+                          : user?.twoFactorEnabled ? "Disable" : "Enable"
+                        }
+                      </Button>
+                    </div>
+                  </Card.Body>
+                </Card>
+
+                {/* Quick Actions */}
+                <Card className="shadow-sm settings-card mb-4 card-hover anim-fade-left anim-d3">
                   <Card.Body className="p-4">
                     <h5 className="fw-bold text-dark mb-1">Quick Actions</h5>
                     <p className="text-muted small mb-4">Account management</p>
-                    <Button className="settings-btn-logout w-100 d-flex justify-content-center align-items-center fw-bold py-2 mb-3" onClick={handleLogout}>
+                    <Button
+                      className="settings-btn-logout w-100 d-flex justify-content-center align-items-center fw-bold py-2 mb-3"
+                      onClick={handleLogout}
+                    >
                       <LogOut className="me-2" size={18} /> Logout
                     </Button>
-                    <Button className="settings-btn-delete w-100 d-flex justify-content-center align-items-center fw-bold py-2">
+                    <Button
+                      className="settings-btn-delete w-100 d-flex justify-content-center align-items-center fw-bold py-2"
+                      onClick={() => { setDeleteConfirmText(""); setShowDeleteModal(true); }}
+                    >
                       <Trash2 className="me-2" size={18} /> Delete Account
                     </Button>
                   </Card.Body>
                 </Card>
 
                 {/* Data Secure Banner */}
-                <Card className="shadow-sm settings-secure-banner card-hover-subtle anim-fade-left anim-d3">
+                <Card className="shadow-sm settings-secure-banner card-hover-subtle anim-fade-left anim-d4">
                   <Card.Body className="p-4 d-flex align-items-start">
                     <Shield className="settings-secure-icon me-3 flex-shrink-0 mt-1" size={24} />
                     <div>
@@ -105,51 +243,78 @@ function SettingsPage() {
                   <Card.Body className="p-4 p-md-5">
                     <h5 className="fw-bold text-dark mb-1">Account Settings</h5>
                     <p className="text-muted small mb-4">Manage your account credentials</p>
-                    <Form>
+                    <Form onSubmit={handleSaveProfile}>
                       {/* Full Name */}
                       <Form.Group className="mb-3">
                         <Form.Label className="small text-muted fw-medium mb-1">Full Name</Form.Label>
                         <div className="input-group settings-input-group">
                           <span className="input-group-text pe-1 ps-3"><User size={18} /></span>
-                          <Form.Control type="text" defaultValue={user?.name || "Abdie Rahman"} className="settings-form-control ps-2 py-2" />
+                          <Form.Control
+                            type="text"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            className="settings-form-control ps-2 py-2"
+                            placeholder="Your full name"
+                          />
                         </div>
                       </Form.Group>
-                      {/* Username */}
-                      <Form.Group className="mb-3">
-                        <Form.Label className="small text-muted fw-medium mb-1">Username</Form.Label>
-                        <div className="input-group settings-input-group">
-                          <span className="input-group-text pe-1 ps-3"><User size={18} /></span>
-                          <Form.Control type="text" defaultValue="abdierahman" className="settings-form-control ps-2 py-2" />
-                        </div>
-                      </Form.Group>
+
                       {/* Email */}
                       <Form.Group className="mb-3">
                         <Form.Label className="small text-muted fw-medium mb-1">Email Address</Form.Label>
                         <div className="input-group settings-input-group">
                           <span className="input-group-text pe-1 ps-3"><Mail size={18} /></span>
-                          <Form.Control type="email" defaultValue={user?.email || "abdie@fintrix.co"} className="settings-form-control ps-2 py-2" />
+                          <Form.Control
+                            type="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="settings-form-control ps-2 py-2"
+                            placeholder="Your email address"
+                          />
                         </div>
+                        {user?.provider === "google" && (
+                          <Form.Text className="text-muted" style={{ fontSize: "0.75rem" }}>
+                            Connected via Google — email changes require re-verification.
+                          </Form.Text>
+                        )}
                       </Form.Group>
-                      {/* Password */}
+
+                      {/* New Password */}
                       <Form.Group className="mb-4">
-                        <Form.Label className="small text-muted fw-medium mb-1">Password</Form.Label>
+                        <Form.Label className="small text-muted fw-medium mb-1">
+                          New Password <span className="text-muted">(leave blank to keep current)</span>
+                        </Form.Label>
                         <div className="d-flex flex-column flex-sm-row gap-2 settings-pw-row">
                           <div className="input-group settings-input-group flex-grow-1">
                             <span className="input-group-text pe-1 ps-3"><Lock size={18} /></span>
                             <Form.Control
                               type={showPassword ? "text" : "password"}
-                              defaultValue="password123"
-                              className="settings-form-control ps-2 py-2 fw-bold"
-                              style={{ letterSpacing: !showPassword ? "2px" : "normal" }}
+                              value={password}
+                              onChange={(e) => setPassword(e.target.value)}
+                              className="settings-form-control ps-2 py-2"
+                              placeholder="New password (min. 8 chars)"
                             />
-                            <span className="input-group-text settings-pw-toggle ps-1 pe-3" onClick={() => setShowPassword(!showPassword)}>
+                            <span
+                              className="input-group-text settings-pw-toggle ps-1 pe-3"
+                              onClick={() => setShowPassword(!showPassword)}
+                              style={{ cursor: "pointer" }}
+                            >
                               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </span>
                           </div>
-                          <Button className="settings-btn-change-pw fw-bold px-4 py-2">Change Password</Button>
                         </div>
                       </Form.Group>
-                      <Button className="settings-btn-save w-100 fw-bold py-2 rounded-3">Save Changes</Button>
+
+                      <Button
+                        type="submit"
+                        disabled={savingProfile}
+                        className="settings-btn-save w-100 fw-bold py-2 rounded-3"
+                      >
+                        {savingProfile
+                          ? <><Spinner size="sm" className="me-2" />Saving...</>
+                          : "Save Changes"
+                        }
+                      </Button>
                     </Form>
                   </Card.Body>
                 </Card>
@@ -165,10 +330,15 @@ function SettingsPage() {
                       <Form.Label className="small fw-bold mb-1 text-dark">Currency</Form.Label>
                       <div className="position-relative">
                         <span className="settings-select-icon"><DollarSign size={16} /></span>
-                        <Form.Select className="settings-select ps-5 py-2" defaultValue="USD">
-                          <option value="USD">USD</option>
-                          <option value="IDR">IDR</option>
-                          <option value="EUR">EUR</option>
+                        <Form.Select
+                          className="settings-select ps-5 py-2"
+                          value={currency}
+                          onChange={(e) => setCurrency(e.target.value)}
+                        >
+                          <option value="USD">USD — US Dollar</option>
+                          <option value="IDR">IDR — Rupiah</option>
+                          <option value="EUR">EUR — Euro</option>
+                          <option value="SGD">SGD — Singapore Dollar</option>
                         </Form.Select>
                       </div>
                     </Form.Group>
@@ -178,7 +348,11 @@ function SettingsPage() {
                       <Form.Label className="small fw-bold mb-1 text-dark">Language</Form.Label>
                       <div className="position-relative">
                         <span className="settings-select-icon"><Globe size={16} /></span>
-                        <Form.Select className="settings-select ps-5 py-2" defaultValue="en">
+                        <Form.Select
+                          className="settings-select ps-5 py-2"
+                          value={language}
+                          onChange={(e) => setLanguage(e.target.value)}
+                        >
                           <option value="en">English</option>
                           <option value="id">Bahasa Indonesia</option>
                         </Form.Select>
@@ -213,6 +387,45 @@ function SettingsPage() {
           </Container>
         </main>
       </div>
+
+      {/* ── Delete Account Modal ─────────────────────────────────────────── */}
+      <Modal show={showDeleteModal} onHide={() => setShowDeleteModal(false)} centered>
+        <Modal.Header closeButton className="border-0">
+          <Modal.Title className="fw-bold text-danger">Delete Account</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p className="text-muted mb-3">
+            This action is <strong>irreversible</strong>. All your data will be permanently deleted.
+            Type <strong>DELETE</strong> to confirm.
+          </p>
+          <Form.Control
+            type="text"
+            placeholder='Type "DELETE" to confirm'
+            value={deleteConfirmText}
+            onChange={(e) => setDeleteConfirmText(e.target.value)}
+            className="mb-3"
+          />
+        </Modal.Body>
+        <Modal.Footer className="border-0">
+          <Button variant="light" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+          <Button
+            variant="danger"
+            onClick={handleDeleteAccount}
+            disabled={deleteConfirmText !== "DELETE" || deletingAcc}
+          >
+            {deletingAcc ? <><Spinner size="sm" className="me-2" />Deleting...</> : "Delete Permanently"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* ── Toast ─────────────────────────────────────────────────────────── */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

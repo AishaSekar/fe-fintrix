@@ -67,13 +67,15 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setError(null);
-      const response = await axios.post("/auth/register", userData);
+      await axios.post("/auth/register", userData);
       
-      const { token, ...data } = response.data;
-      localStorage.setItem("fintrix_token", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // Data berhasil disimpan di backend.
+      // Kita hapus kode auto-login agar user harus ke halaman login dulu.
+      // const { token, ...data } = response.data;
+      // localStorage.setItem("fintrix_token", token);
+      // axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      // setUser(data);
       
-      setUser(data);
       return { success: true };
     } catch (err) {
       const msg = err.response?.data?.message || "Registration failed";

@@ -7,8 +7,6 @@ import {
   Wallet,
   TrendingUp,
   FileText,
-  Bell,
-  Settings,
   X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
@@ -23,8 +21,6 @@ const menuItems = [
   { path: "/budget", label: "Budget", icon: Wallet },
   { path: "/investment", label: "Investment", icon: TrendingUp },
   { path: "/reports", label: "Reports", icon: FileText },
-  { path: "/notifications", label: "Notifications", icon: Bell },
-  { path: "/settings", label: "Settings", icon: Settings },
 ];
 
 function SidebarComponent({ isOpen, onClose }) {

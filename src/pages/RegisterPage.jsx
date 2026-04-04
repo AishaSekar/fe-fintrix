@@ -36,7 +36,8 @@ function RegisterPage() {
       return;
     }
 
-    navigate('/dashboard');
+    // Redirect ke halaman login setelah register berhasil sesuai alur
+    navigate('/login');
   };
 
   return (

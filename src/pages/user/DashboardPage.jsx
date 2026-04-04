@@ -37,6 +37,7 @@ import {
   Filler,
 } from "chart.js";
 import "../../styles/dashboard.css";
+import "../../styles/animations.css";
 
 // Daftarin plugin Chart.js yang dipakai di halaman ini
 ChartJS.register(
@@ -343,13 +344,11 @@ function DashboardPage() {
             <Row className="g-3 g-md-4 mb-3">
               {kartuRingkasan.map((kartu, index) => {
                 const IconComp = kartu.icon;
-                // Ambil value dari data ringkasan
                 const value = ringkasanKeuangan[kartu.key];
                 return (
                   <Col lg={3} sm={6} xs={6} key={kartu.key}>
                     <Card
-                      className="summary-card shadow-sm border-0"
-                      style={{ animationDelay: `${index * 0.1}s` }}
+                      className={`summary-card shadow-sm border-0 card-hover card-hover-green anim-fade-up anim-d${index}`}
                     >
                       <Card.Body className="p-3">
                         <div className="d-flex justify-content-between align-items-start mb-3">
@@ -385,7 +384,7 @@ function DashboardPage() {
             <Row className="g-3 g-md-4">
               {/* Chart garis: Income vs Expenses */}
               <Col lg={8}>
-                <Card className="shadow-sm border-0 h-100 dashboard-card">
+                <Card className="shadow-sm border-0 h-100 dashboard-card card-hover anim-fade-up anim-d4">
                   <Card.Body>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div>
@@ -395,7 +394,7 @@ function DashboardPage() {
                         </small>
                       </div>
                     </div>
-                    <div style={{ height: 280 }}>
+                    <div className="dashboard-chart-wrap" style={{ height: 280 }}>
                       <Line
                         data={lineChartData}
                         options={lineChartOptions}
@@ -407,12 +406,12 @@ function DashboardPage() {
 
               {/* Chart donut: Spending Categories */}
               <Col lg={4}>
-                <Card className="shadow-sm border-0 h-100 dashboard-card">
+                <Card className="shadow-sm border-0 h-100 dashboard-card card-hover anim-fade-right anim-d5">
                   <Card.Body>
                     <h5 className="mb-1 fw-semibold">Spending Categories</h5>
                     <small className="text-muted">This month breakdown</small>
                     <div className="d-flex flex-column align-items-center mt-3">
-                      <div style={{ width: 180, height: 180 }}>
+                      <div className="dashboard-donut-wrap" style={{ width: 180, height: 180 }}>
                         <Doughnut
                           data={donutChartData}
                           options={donutChartOptions}
@@ -451,7 +450,7 @@ function DashboardPage() {
             <Row className="g-3 g-md-4 mt-1">
               {/* Tabel transaksi terakhir */}
               <Col lg={8}>
-                <Card className="shadow-sm border-0 mb-4 dashboard-card">
+                <Card className="shadow-sm border-0 mb-4 dashboard-card card-hover anim-fade-up anim-d5">
                   <Card.Body>
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div>
@@ -536,7 +535,7 @@ function DashboardPage() {
 
               {/* Kartu Saving Goals */}
               <Col lg={4}>
-                <Card className="shadow-sm border-0 h-100 dashboard-card">
+                <Card className="shadow-sm border-0 h-100 dashboard-card card-hover anim-fade-right anim-d6">
                   <Card.Body className="d-flex flex-column justify-content-between">
                     <div className="mb-3">
                       <h5 className="mb-1 fw-semibold">Saving Goals</h5>
@@ -546,7 +545,7 @@ function DashboardPage() {
                     </div>
 
                     {/* Circular progress SVG */}
-                    <div className="d-flex align-items-center justify-content-between mb-3">
+                    <div className="d-flex align-items-center justify-content-between mb-3 saving-goals-inner">
                       <div>
                         <div className="d-flex justify-content-between mb-1 small">
                           <span className="text-muted me-4">Current</span>

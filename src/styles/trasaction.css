@@ -12,7 +12,6 @@
   z-index: 9998 !important;
 }
 
-
 .tp-title {
   color: #1e293b;
 }
@@ -105,7 +104,7 @@
 }
 
 .tp-table {
-  min-width: 900px;
+  min-width: 800px;
 }
 
 .tp-table-th {
@@ -158,6 +157,100 @@
 .tp-badge-pending {
   background-color: #fef3c7;
   color: #d97706;
+}
+
+/* =========================
+   MOBILE TRANSACTION CARDS
+   Card-based layout for mobile
+========================= */
+.tp-mobile-card {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #f1f5f9;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tp-mobile-card:active {
+  transform: scale(0.99);
+}
+
+.tp-mobile-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tp-mobile-card-icon--income {
+  background-color: #ecfdf5;
+  color: #22c55e;
+}
+
+.tp-mobile-card-icon--expense {
+  background-color: #fef2f2;
+  color: #ef4444;
+}
+
+.tp-mobile-card-category {
+  font-size: 0.9rem;
+  line-height: 1.3;
+}
+
+.tp-mobile-card-date {
+  font-size: 0.75rem;
+}
+
+.tp-mobile-card-amount {
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.tp-mobile-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.tp-mobile-card-tag {
+  background: #f1f5f9;
+  color: #64748b;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.tp-mobile-card-note {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.tp-mobile-card-actions {
+  border-top: 1px solid #f1f5f9;
+}
+
+.tp-mobile-edit-btn,
+.tp-mobile-delete-btn {
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 4px 12px !important;
+}
+
+.tp-mobile-edit-btn {
+  color: #64748b;
+}
+
+.tp-mobile-delete-btn {
+  color: #ef4444 !important;
 }
 
 /* =========================
@@ -340,7 +433,7 @@
 
 /* textarea */
 .tp-textarea {
-  min-height: 130px;
+  min-height: 100px;
   height: auto;
   padding-top: 16px !important;
   resize: none;
@@ -390,10 +483,10 @@
    RESPONSIVE: Mobile (<768px)
    ============================================= */
 @media (max-width: 767.98px) {
-  /* Header: stack vertically */
+  /* Header: stack vertically, full width button */
   .tp-page-header {
     flex-direction: column !important;
-    align-items: flex-start !important;
+    align-items: stretch !important;
     gap: 0.75rem !important;
   }
 
@@ -402,16 +495,55 @@
     justify-content: center;
   }
 
-  /* Summary metric cards: 2 per row */
+  .tp-title {
+    font-size: 1.35rem;
+  }
+
+  .tp-subtitle {
+    font-size: 0.82rem;
+  }
+
+  /* Metric cards: 2 per row, compact */
   .tp-metric-col {
     flex: 0 0 50%;
     max-width: 50%;
   }
 
-  /* Filter bar */
+  .tp-metric-card-body {
+    padding: 12px !important;
+  }
+
+  .tp-metric-card-body h3 {
+    font-size: 1.05rem !important;
+  }
+
+  .tp-card-label {
+    font-size: 0.72rem;
+  }
+
+  .tp-metric-icon-wrap {
+    padding: 6px !important;
+  }
+
+  .tp-metric-icon-wrap svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .tp-card-value-dark,
+  .tp-card-value-green,
+  .tp-card-value-red {
+    font-size: 1.05rem;
+  }
+
+  /* Filter bar: compact */
   .tp-filter-input-group,
   .tp-filter-select {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .tp-filter-select {
+    padding: 0.55rem 0.75rem;
   }
 
   .tp-btn-filter {
@@ -419,72 +551,76 @@
     width: 100%;
   }
 
-  /* Table: make it scroll horizontally */
-  .tp-table {
-    min-width: 700px;
-  }
-
-  /* Table font size reduction */
-  .tp-table-th {
-    font-size: 0.68rem;
-  }
-
-  .tp-table-td-date,
-  .tp-table-td-budget,
-  .tp-table-td-note,
-  .tp-table-td-category,
-  .tp-table-td-amount-income,
-  .tp-table-td-amount-expense {
-    font-size: 0.82rem;
-  }
-
-  /* Card body padding */
-  .tp-card-value-dark,
-  .tp-card-value-green,
-  .tp-card-value-red {
-    font-size: 1.1rem;
+  .tp-btn-filter-text {
+    font-size: 0.85rem;
   }
 
   /* Modal */
   .tp-transaction-modal .modal-dialog {
-    max-width: calc(100% - 24px);
-    margin: 12px auto;
+    max-width: calc(100% - 16px);
+    margin: 8px auto;
   }
 
   .tp-modal-header {
-    padding: 20px 20px 8px;
+    padding: 18px 18px 6px;
   }
 
   .tp-modal-body {
-    padding: 16px 20px 18px;
+    padding: 14px 18px 16px;
   }
 
   .tp-modal-footer {
-    padding: 8px 20px 20px;
+    padding: 8px 18px 18px;
     flex-wrap: wrap;
   }
 
   .tp-btn-cancel,
   .tp-btn-save {
     width: 100%;
+    min-width: unset;
   }
 
   .tp-modal-title {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
+  }
+
+  .tp-modal-subtitle {
+    font-size: 0.85rem;
   }
 
   .tp-type-switcher {
-    gap: 12px;
+    gap: 10px;
   }
 
   .tp-type-option {
-    height: 52px;
-    font-size: 0.95rem;
+    height: 48px;
+    font-size: 0.92rem;
+    border-radius: 14px;
   }
 
   .tp-input {
-    height: 50px;
-    font-size: 0.92rem !important;
+    height: 48px;
+    font-size: 0.9rem !important;
+    border-radius: 14px !important;
+  }
+
+  .tp-amount-group {
+    height: 48px;
+    border-radius: 14px;
+  }
+
+  .tp-amount-prefix {
+    font-size: 1.2rem;
+    padding-left: 14px;
+  }
+
+  .tp-label {
+    font-size: 0.88rem;
+    margin-bottom: 6px;
+  }
+
+  .tp-textarea {
+    min-height: 80px;
   }
 }
 
@@ -493,27 +629,80 @@
    ============================================= */
 @media (max-width: 479.98px) {
   .tp-title {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
   }
 
-  /* Full-width metric cards on very small screens */
-  .tp-metric-col {
-    flex: 0 0 100%;
-    max-width: 100%;
+  .tp-subtitle {
+    font-size: 0.78rem;
+  }
+
+  .tp-metric-card-body {
+    padding: 10px !important;
+  }
+
+  .tp-metric-card-body h3 {
+    font-size: 0.92rem !important;
+  }
+
+  .tp-card-label {
+    font-size: 0.65rem;
   }
 
   .tp-card-value-dark,
   .tp-card-value-green,
   .tp-card-value-red {
-    font-size: 1rem;
+    font-size: 0.92rem;
   }
 
-  .tp-card-label {
-    font-size: 0.8rem;
+  /* Mobile card even more compact */
+  .tp-mobile-card {
+    padding: 10px !important;
+    border-radius: 12px;
   }
 
-  .tp-table {
-    min-width: 600px;
+  .tp-mobile-card-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+  }
+
+  .tp-mobile-card-category {
+    font-size: 0.82rem;
+  }
+
+  .tp-mobile-card-amount {
+    font-size: 0.85rem;
+  }
+
+  .tp-mobile-card-note {
+    max-width: 140px;
+    font-size: 0.72rem;
+  }
+
+  .tp-badge-base {
+    padding: 3px 8px;
+    font-size: 0.65rem;
+  }
+
+  /* Modal compact */
+  .tp-modal-title {
+    font-size: 1.2rem;
+  }
+
+  .tp-input {
+    height: 44px;
+    font-size: 0.85rem !important;
+    border-radius: 12px !important;
+  }
+
+  .tp-amount-group {
+    height: 44px;
+    border-radius: 12px;
+  }
+
+  .tp-type-option {
+    height: 44px;
+    font-size: 0.85rem;
+    border-radius: 12px;
   }
 }
-

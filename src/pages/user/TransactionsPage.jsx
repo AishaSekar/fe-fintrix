@@ -1,46 +1,90 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import SidebarComponent from "../../components/SidebarComponent";
 import TopNavbarComponent from "../../components/TopNavbarComponent";
-import { Container, Row, Col, Card, Form, Button, Table, InputGroup, Modal } from "react-bootstrap";
+import { Container, Row, Col, Card, Form, Button, Table, InputGroup, Modal, Spinner } from "react-bootstrap";
 import { Plus, Wallet, TrendingUp, TrendingDown, Receipt, Calendar, Search, Filter, Pencil, Trash2, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { transactionApi } from "../../services/api";
 import "../../styles/dashboard.css";
 import "../../styles/trasaction.css";
 import "../../styles/animations.css";
-
-const initialTransactions = [
-  { id: 1,  date: "2026-03-10", category: "Salary",        budget: "Monthly Income",    note: "Main remote job salary",                 amount: 5240.0, amountType: "income",  status: "Completed" },
-  { id: 2,  date: "2026-03-09", category: "Groceries",     budget: "Food & Dining",     note: "Weekly grocery shopping at Whole Foods",  amount: 145.5,  amountType: "expense", status: "Completed" },
-  { id: 3,  date: "2026-03-08", category: "Electricity",   budget: "Bills & Utilities", note: "Monthly electric bill",                   amount: 89.0,   amountType: "expense", status: "Completed" },
-  { id: 4,  date: "2026-03-08", category: "Entertainment", budget: "Entertainment",     note: "Netflix & Spotify subscriptions",          amount: 25.98,  amountType: "expense", status: "Completed" },
-  { id: 5,  date: "2026-03-07", category: "Food & Dining", budget: "Food & Dining",     note: "Dinner with friends",                     amount: 56.5,   amountType: "expense", status: "Completed" },
-  { id: 6,  date: "2026-03-06", category: "Freelance",     budget: "Side Income",       note: "Web design project final payment",         amount: 1200.0, amountType: "income",  status: "Completed" },
-  { id: 7,  date: "2026-03-05", category: "Transportation",budget: "Transportation",    note: "Gas for the car",                         amount: 45.0,   amountType: "expense", status: "Completed" },
-  { id: 8,  date: "2026-03-04", category: "Shopping",      budget: "Shopping",          note: "New sneakers",                            amount: 180.0,  amountType: "expense", status: "Completed" },
-  { id: 9,  date: "2026-03-02", category: "Investment",    budget: "Investments",       note: "Monthly ETF deposit",                     amount: 500.0,  amountType: "expense", status: "Completed" },
-  { id: 10, date: "2026-03-01", category: "Side Hustle",   budget: "Side Income",       note: "Photography weekend gig",                 amount: 350.0,  amountType: "income",  status: "Pending"   },
-];
 
 const StatusBadge = ({ status }) => (
   <span className={`tp-badge-base ${status === "Completed" ? "tp-badge-completed" : "tp-badge-pending"}`}>{status}</span>
 );
 
 const formatDate = (d) => d ? new Date(d).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "";
+const formatDateInput = (d) => d ? new Date(d).toISOString().split('T')[0] : "";
 const formatMoney = (a) => "$" + a.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/* ── Mobile Transaction Card ── */
+const TransactionMobileCard = ({ t, onEdit, onDelete }) => (
+  <div className="tp-mobile-card p-3 mb-3">
+    <div className="d-flex justify-content-between align-items-start mb-2">
+      <div className="d-flex align-items-center gap-2">
+        <div className={`tp-mobile-card-icon ${t.amountType === "income" ? "tp-mobile-card-icon--income" : "tp-mobile-card-icon--expense"}`}>
+          {t.amountType === "income" ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
+        </div>
+        <div>
+          <div className="fw-bold text-dark tp-mobile-card-category">{t.category}</div>
+          <div className="text-muted tp-mobile-card-date">{formatDate(t.date)}</div>
+        </div>
+      </div>
+      <div className="text-end">
+        <div className={`fw-bold ${t.amountType === "income" ? "tp-table-td-amount-income" : "tp-table-td-amount-expense"} tp-mobile-card-amount`}>
+          {t.amountType === "income" ? "+" : "-"}{formatMoney(t.amount)}
+        </div>
+        <StatusBadge status={t.status} />
+      </div>
+    </div>
+    {(t.note || t.budget) && (
+      <div className="tp-mobile-card-meta">
+        {t.budget && <span className="tp-mobile-card-tag">{t.budget}</span>}
+        {t.note && <span className="text-muted tp-mobile-card-note">{t.note}</span>}
+      </div>
+    )}
+    <div className="d-flex justify-content-end gap-3 mt-2 pt-2 tp-mobile-card-actions">
+      <button className="btn btn-sm btn-light d-flex align-items-center gap-1 tp-mobile-edit-btn" onClick={() => onEdit(t)}>
+        <Pencil size={14} /> Edit
+      </button>
+      <button className="btn btn-sm btn-light text-danger d-flex align-items-center gap-1 tp-mobile-delete-btn" onClick={() => onDelete(t._id)}>
+        <Trash2 size={14} /> Delete
+      </button>
+    </div>
+  </div>
+);
 
 function TransactionsPage() {
   const [sidebarOpen, setSidebarOpen]   = useState(false);
-  const [transactions, setTransactions] = useState(initialTransactions);
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading]           = useState(true);
   const [searchTerm, setSearchTerm]     = useState("");
   const [filterCategory, setFilterCategory] = useState("All Categories");
   const [filterType, setFilterType]     = useState("All Types");
   const [showModal, setShowModal]       = useState(false);
   const [editingId, setEditingId]       = useState(null);
+  const [saving, setSaving]             = useState(false);
   const [formData, setFormData]         = useState({ date: "", category: "", budget: "", note: "", amount: "", amountType: "income", status: "Completed" });
 
   const uniqueCategories = ["All Categories","Salary","Freelance","Investment","Side Hustle","Groceries","Food & Dining","Shopping","Transportation","Bills & Utilities","Entertainment","Healthcare","Education","Others"];
 
+  const fetchTransactions = useCallback(async () => {
+    try {
+      setLoading(true);
+      const data = await transactionApi.getAll();
+      setTransactions(data);
+    } catch (err) {
+      console.error("Failed to fetch transactions:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchTransactions();
+  }, [fetchTransactions]);
+
   const filteredTransactions = useMemo(() => transactions.filter((t) => {
-    const matchSearch   = t.category.toLowerCase().includes(searchTerm.toLowerCase()) || t.note.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch   = t.category.toLowerCase().includes(searchTerm.toLowerCase()) || (t.note || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchType     = filterType === "All Types" || (filterType === "Income" && t.amountType === "income") || (filterType === "Expense" && t.amountType === "expense");
     const matchCategory = filterCategory === "All Categories" || t.category === filterCategory;
     return matchSearch && matchType && matchCategory;
@@ -56,25 +100,55 @@ function TransactionsPage() {
     setFormData({ date: "", category: "", budget: "", note: "", amount: "", amountType: "income", status: "Completed" });
     setEditingId(null); setShowModal(true);
   };
+
   const handleEdit = (t) => {
-    setFormData({ date: t.date, category: t.category, budget: t.budget, note: t.note, amount: t.amount, amountType: t.amountType, status: t.status });
-    setEditingId(t.id); setShowModal(true);
+    setFormData({
+      date: formatDateInput(t.date),
+      category: t.category,
+      budget: t.budget || "",
+      note: t.note || "",
+      amount: t.amount,
+      amountType: t.amountType,
+      status: t.status
+    });
+    setEditingId(t._id); setShowModal(true);
   };
-  const handleDelete = (id) => { if (window.confirm("Delete this transaction?")) setTransactions(transactions.filter((t) => t.id !== id)); };
-  const handleModalSubmit = (e) => {
-    e.preventDefault();
-    const saveTx = { ...formData, amount: parseFloat(formData.amount) || 0 };
-    if (editingId) {
-      setTransactions(transactions.map((t) => t.id === editingId ? { ...saveTx, id: editingId } : t));
-    } else {
-      const newId = transactions.length > 0 ? Math.max(...transactions.map((t) => t.id)) + 1 : 1;
-      setTransactions([{ ...saveTx, id: newId }, ...transactions]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this transaction?")) return;
+    try {
+      await transactionApi.delete(id);
+      setTransactions(transactions.filter((t) => t._id !== id));
+    } catch (err) {
+      console.error("Failed to delete transaction:", err);
+      alert("Failed to delete transaction");
     }
-    setShowModal(false);
   };
+
+  const handleModalSubmit = async (e) => {
+    e.preventDefault();
+    setSaving(true);
+    const payload = { ...formData, amount: parseFloat(formData.amount) || 0 };
+
+    try {
+      if (editingId) {
+        const updated = await transactionApi.update(editingId, payload);
+        setTransactions(transactions.map((t) => t._id === editingId ? updated : t));
+      } else {
+        const created = await transactionApi.create(payload);
+        setTransactions([created, ...transactions]);
+      }
+      setShowModal(false);
+    } catch (err) {
+      console.error("Failed to save transaction:", err);
+      alert(err.response?.data?.message || "Failed to save transaction");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleModalChange = (e) => { const { name, value } = e.target; setFormData((prev) => ({ ...prev, [name]: value })); };
 
-  /* Metric card definitions */
   const metricCards = [
     { label: "Total Balance",      value: formatMoney(totalBalance),    iconCls: "tp-card-icon-blue",   valCls: "tp-card-value-dark",  Icon: Wallet,       trend: <div className="d-flex align-items-center tp-trend-green"><ArrowUpRight size={16} /></div>, animD: "anim-d1", extraCls: "card-hover-green" },
     { label: "Monthly Income",     value: formatMoney(monthlyIncome),   iconCls: "tp-card-icon-green",  valCls: "tp-card-value-green", Icon: TrendingUp,   trend: <div className="d-flex align-items-center tp-trend-green"><ArrowUpRight size={16} /></div>, animD: "anim-d2", extraCls: "card-hover-green" },
@@ -87,7 +161,7 @@ function TransactionsPage() {
       <SidebarComponent isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="dashboard-layout flex-grow-1 d-flex flex-column">
         <TopNavbarComponent onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
-        <main className="dashboard-main p-4 p-md-5">
+        <main className="dashboard-main p-3 p-md-4">
           <Container fluid className="px-0">
 
             {/* Header */}
@@ -105,10 +179,10 @@ function TransactionsPage() {
             <Row className="mb-4 g-3">
               {metricCards.map((m, i) => (
                 <Col key={i} xs={6} md={6} xl={3} className="tp-metric-col">
-                  <Card className={`border-0 shadow-sm rounded-4 h-100 p-2 card-hover ${m.extraCls} anim-fade-up ${m.animD}`}>
-                    <Card.Body>
-                      <div className="d-flex justify-content-between align-items-start mb-3">
-                        <div className={`p-2 rounded-3 ${m.iconCls}`}><m.Icon size={20} /></div>
+                  <Card className={`border-0 shadow-sm rounded-4 h-100 card-hover ${m.extraCls} anim-fade-up ${m.animD}`}>
+                    <Card.Body className="tp-metric-card-body p-3">
+                      <div className="d-flex justify-content-between align-items-start mb-2 mb-md-3">
+                        <div className={`p-2 rounded-3 tp-metric-icon-wrap ${m.iconCls}`}><m.Icon size={20} /></div>
                         {m.trend}
                       </div>
                       <div className="text-muted mb-1 tp-card-label">{m.label}</div>
@@ -155,7 +229,7 @@ function TransactionsPage() {
                       <Form.Label className="small text-dark fw-bold mb-2">Search</Form.Label>
                       <InputGroup className="rounded-3 tp-filter-input-group">
                         <InputGroup.Text className="bg-white border-0 text-muted ps-3 pe-2"><Search size={18} /></InputGroup.Text>
-                        <Form.Control type="text" placeholder="Search Category or Note" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border-0 ps-0 shadow-none text-muted tp-filter-input" />
+                        <Form.Control type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="border-0 ps-0 shadow-none text-muted tp-filter-input" />
                       </InputGroup>
                     </Form.Group>
                   </Col>
@@ -168,45 +242,67 @@ function TransactionsPage() {
               </Card.Body>
             </Card>
 
-            {/* Transactions Table */}
+            {/* Transactions History */}
             <Card className="border-0 shadow-sm rounded-4 mb-4 card-hover anim-fade-up anim-d5">
               <Card.Body className="p-0">
-                <div className="p-4 border-bottom">
+                <div className="p-3 p-md-4 border-bottom">
                   <h5 className="fw-bold mb-0 tp-title">Transactions History</h5>
                 </div>
-                <div className="p-3 p-md-4 pt-2">
-                  <Table responsive className="align-middle mb-0 text-nowrap tp-table">
-                    <thead>
-                      <tr>
-                        {["DATE","CATEGORY","BUDGET","NOTE","AMOUNT","STATUS","ACTIONS"].map((h, i) => (
-                          <th key={i} className={`text-muted fw-semibold pb-3 border-bottom text-uppercase tp-table-th${h === "ACTIONS" ? " text-center" : ""}`}>{h}</th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody className="border-top-0">
-                      {filteredTransactions.length === 0 ? (
-                        <tr><td colSpan="7" className="text-center py-4 text-muted">No transactions found</td></tr>
-                      ) : filteredTransactions.map((t) => (
-                        <tr key={t.id}>
-                          <td className="py-3 text-muted tp-table-td-date">{formatDate(t.date)}</td>
-                          <td className="py-3 fw-bold tp-table-td-category">{t.category}</td>
-                          <td className="py-3 text-muted tp-table-td-budget">{t.budget}</td>
-                          <td className="py-3 text-muted tp-table-td-note">{t.note}</td>
-                          <td className={`py-3 fw-bold ${t.amountType === "income" ? "tp-table-td-amount-income" : "tp-table-td-amount-expense"}`}>
-                            {t.amountType === "income" ? "+" : "-"}{formatMoney(t.amount)}
-                          </td>
-                          <td className="py-3"><StatusBadge status={t.status} /></td>
-                          <td className="py-3 text-center">
-                            <div className="d-flex gap-3 justify-content-center">
-                              <button className="btn btn-link p-0 text-muted tp-action-btn-edit" onClick={() => handleEdit(t)}><Pencil size={18} /></button>
-                              <button className="btn btn-link p-0 text-danger tp-action-btn-delete" onClick={() => handleDelete(t.id)}><Trash2 size={18} /></button>
-                            </div>
-                          </td>
-                        </tr>
+
+                {loading ? (
+                  <div className="text-center py-5">
+                    <Spinner animation="border" variant="success" />
+                    <p className="text-muted mt-2">Loading transactions...</p>
+                  </div>
+                ) : filteredTransactions.length === 0 ? (
+                  <div className="text-center py-5 text-muted">
+                    <Receipt size={40} className="mb-2 opacity-25" />
+                    <p className="mb-0">No transactions found</p>
+                    <small>Add your first transaction to see it here</small>
+                  </div>
+                ) : (
+                  <>
+                    {/* Desktop Table — hidden on mobile */}
+                    <div className="p-3 p-md-4 pt-2 d-none d-md-block">
+                      <Table responsive className="align-middle mb-0 text-nowrap tp-table">
+                        <thead>
+                          <tr>
+                            {["DATE","CATEGORY","BUDGET","NOTE","AMOUNT","STATUS","ACTIONS"].map((h, i) => (
+                              <th key={i} className={`text-muted fw-semibold pb-3 border-bottom text-uppercase tp-table-th${h === "ACTIONS" ? " text-center" : ""}`}>{h}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="border-top-0">
+                          {filteredTransactions.map((t) => (
+                            <tr key={t._id}>
+                              <td className="py-3 text-muted tp-table-td-date">{formatDate(t.date)}</td>
+                              <td className="py-3 fw-bold tp-table-td-category">{t.category}</td>
+                              <td className="py-3 text-muted tp-table-td-budget">{t.budget}</td>
+                              <td className="py-3 text-muted tp-table-td-note">{t.note}</td>
+                              <td className={`py-3 fw-bold ${t.amountType === "income" ? "tp-table-td-amount-income" : "tp-table-td-amount-expense"}`}>
+                                {t.amountType === "income" ? "+" : "-"}{formatMoney(t.amount)}
+                              </td>
+                              <td className="py-3"><StatusBadge status={t.status} /></td>
+                              <td className="py-3 text-center">
+                                <div className="d-flex gap-3 justify-content-center">
+                                  <button className="btn btn-link p-0 text-muted tp-action-btn-edit" onClick={() => handleEdit(t)}><Pencil size={18} /></button>
+                                  <button className="btn btn-link p-0 text-danger tp-action-btn-delete" onClick={() => handleDelete(t._id)}><Trash2 size={18} /></button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </div>
+
+                    {/* Mobile Card List — visible only on mobile */}
+                    <div className="p-3 d-md-none">
+                      {filteredTransactions.map((t) => (
+                        <TransactionMobileCard key={t._id} t={t} onEdit={handleEdit} onDelete={handleDelete} />
                       ))}
-                    </tbody>
-                  </Table>
-                </div>
+                    </div>
+                  </>
+                )}
               </Card.Body>
             </Card>
 
@@ -275,14 +371,16 @@ function TransactionsPage() {
               <Col xs={12}>
                 <Form.Group>
                   <Form.Label className="tp-label">Transaction Note</Form.Label>
-                  <Form.Control as="textarea" rows={4} name="note" value={formData.note} onChange={handleModalChange} placeholder="Add note about this transaction..." className="tp-input tp-textarea" />
+                  <Form.Control as="textarea" rows={3} name="note" value={formData.note} onChange={handleModalChange} placeholder="Add note about this transaction..." className="tp-input tp-textarea" />
                 </Form.Group>
               </Col>
             </Row>
           </Modal.Body>
           <Modal.Footer className="tp-modal-footer border-0">
             <Button type="button" variant="light" onClick={() => setShowModal(false)} className="tp-btn-cancel">Cancel</Button>
-            <Button type="submit" className="tp-btn-save">Save Transaction</Button>
+            <Button type="submit" className="tp-btn-save" disabled={saving}>
+              {saving ? <><Spinner size="sm" className="me-2" />Saving...</> : "Save Transaction"}
+            </Button>
           </Modal.Footer>
         </Form>
       </Modal>

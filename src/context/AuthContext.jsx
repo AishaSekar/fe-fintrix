@@ -203,7 +203,7 @@ export const AuthProvider = ({ children }) => {
 
   const getUserStats = async () => {
     try {
-      const response = await axios.get("/users/stats");
+      const response = await axios.get("/transactions/stats");
       return { success: true, data: response.data };
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to fetch stats";

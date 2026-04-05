@@ -40,7 +40,6 @@ import {
 import "../../styles/dashboard.css";
 import "../../styles/animations.css";
 
-// Daftarin plugin Chart.js yang dipakai di halaman ini
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -52,10 +51,6 @@ ChartJS.register(
   Filler
 );
 
-// ===========================================
-// DATA DUMMY (fallback jika API belum ada data)
-// ===========================================
-
 const DEFAULT_STATS = {
   totalBalance: 0,
   income: 0,
@@ -64,81 +59,6 @@ const DEFAULT_STATS = {
   recentTransactions: [],
 };
 
-// Data transaksi terakhir
-const daftarTransaksi = [
-  {
-    id: 1,
-    nama: "Netflix Subscription",
-    jumlah: 15.99,
-    tipe: "expense",
-    tanggal: "Mar 08, 2026",
-    kategori: "Entertainment",
-    ikon: "tv",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    nama: "Salary Payment",
-    jumlah: 8240,
-    tipe: "income",
-    tanggal: "Mar 05, 2026",
-    kategori: "Income",
-    ikon: "trending",
-    status: "Completed",
-  },
-  {
-    id: 3,
-    nama: "Grocery Store",
-    jumlah: 127.5,
-    tipe: "expense",
-    tanggal: "Mar 04, 2026",
-    kategori: "Food",
-    ikon: "cart",
-    status: "Completed",
-  },
-  {
-    id: 4,
-    nama: "Electric Bill",
-    jumlah: 89,
-    tipe: "expense",
-    tanggal: "Mar 03, 2026",
-    kategori: "Bills",
-    ikon: "zap",
-    status: "Pending",
-  },
-  {
-    id: 5,
-    nama: "Freelance Project",
-    jumlah: 1200,
-    tipe: "income",
-    tanggal: "Mar 01, 2026",
-    kategori: "Income",
-    ikon: "trending",
-    status: "Completed",
-  },
-  {
-    id: 6,
-    nama: "Coffee Shop",
-    jumlah: 12.5,
-    tipe: "expense",
-    tanggal: "Feb 28, 2026",
-    kategori: "Food",
-    ikon: "coffee",
-    status: "Completed",
-  },
-  {
-    id: 7,
-    nama: "Rent Payment",
-    jumlah: 1500,
-    tipe: "expense",
-    tanggal: "Feb 25, 2026",
-    kategori: "Housing",
-    ikon: "home",
-    status: "Completed",
-  },
-];
-
-// Data pengeluaran per kategori (buat chart donut)
 const kategoriPengeluaran = [
   { nama: "Food", jumlah: 1200, warna: "#22c55e" },
   { nama: "Shopping", jumlah: 850, warna: "#0ea5e9" },
@@ -147,17 +67,12 @@ const kategoriPengeluaran = [
   { nama: "Entertainment", jumlah: 500, warna: "#a855f7" },
 ];
 
-// Data target tabungan
 const targetTabungan = {
   namaTarget: "Emergency fund target",
   current: 6800,
   goal: 10000,
 };
 
-// ==========================================
-// Konfigurasi 4 kartu ringkasan di atas
-// Tiap kartu punya: label, key data, icon, warna
-// ==========================================
 const kartuRingkasan = [
   {
     label: "Total Balance",
@@ -202,11 +117,6 @@ const kartuRingkasan = [
   },
 ];
 
-// ==========================================
-// FUNGSI PEMBANTU
-// ==========================================
-
-// Mapping ikon transaksi — ambil komponen icon sesuai nama ikon
 const ikonMap = {
   tv: Tv,
   trending: TrendingUp,
@@ -218,13 +128,26 @@ const ikonMap = {
   phone: Smartphone,
 };
 
-// Fungsi untuk render ikon transaksi
+const categoryIconMap = {
+  "Entertainment": "tv",
+  "Salary": "trending",
+  "Freelance": "trending",
+  "Investment": "trending",
+  "Side Hustle": "trending",
+  "Groceries": "cart",
+  "Food & Dining": "coffee",
+  "Shopping": "cart",
+  "Transportation": "car",
+  "Bills & Utilities": "zap",
+  "Healthcare": "home",
+  "Education": "home",
+};
+
 function getTransactionIcon(namaIkon) {
   const Icon = ikonMap[namaIkon] || Wallet;
   return <Icon size={18} />;
 }
 
-// Fungsi format angka jadi format dolar (contoh: 8240 -> "8,240.00")
 function formatUang(angka) {
   return angka.toLocaleString("en-US", {
     minimumFractionDigits: 2,
@@ -232,29 +155,28 @@ function formatUang(angka) {
   });
 }
 
-// ==========================================
-// KOMPONEN UTAMA: DashboardPage
-// ==========================================
 function DashboardPage() {
   const { user, getUserStats } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [stats, setStats]             = useState(DEFAULT_STATS);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
-  // Ambil stats dari API saat komponen mount
   useEffect(() => {
     const fetchStats = async () => {
       setStatsLoading(true);
       const result = await getUserStats();
       if (result.success) {
         setStats(result.data);
+        if (result.data.recentTransactions) {
+          setRecentTransactions(result.data.recentTransactions);
+        }
       }
       setStatsLoading(false);
     };
     fetchStats();
   }, []);
 
-  // Mapping data API ke format ringkasanKeuangan
   const ringkasanKeuangan = {
     totalBalance:    stats.totalBalance   ?? 0,
     monthlyIncome:   stats.income         ?? 0,
@@ -262,12 +184,10 @@ function DashboardPage() {
     savingsPercent:  stats.savingsGoal    ?? 0,
   };
 
-  // Hitung persentase tabungan
   const persen = Math.round(
     (targetTabungan.current / targetTabungan.goal) * 100
   );
 
-  // -- Config chart: Income vs Expenses (Line Chart) --
   const lineChartData = {
     labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun"],
     datasets: [
@@ -315,7 +235,6 @@ function DashboardPage() {
     },
   };
 
-  // -- Config chart: Spending Categories (Doughnut Chart) --
   const donutChartData = {
     labels: kategoriPengeluaran.map((k) => k.nama),
     datasets: [
@@ -337,22 +256,31 @@ function DashboardPage() {
     },
   };
 
-  // SVG lingkaran progress untuk Saving Goals
-  // Rumus: circumference = 2 * PI * radius
   const radius = 52;
   const circumference = 2 * Math.PI * radius;
   const strokeOffset = circumference - (persen / 100) * circumference;
 
+  const displayTransactions = recentTransactions.length > 0
+    ? recentTransactions.map((t, i) => ({
+        id: t._id || i,
+        nama: t.category || t.note || "Transaction",
+        jumlah: t.amount,
+        tipe: t.amountType,
+        tanggal: new Date(t.date).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }),
+        kategori: t.category,
+        ikon: categoryIconMap[t.category] || "trending",
+        status: t.status || "Completed",
+      }))
+    : [];
+
   return (
     <div className="d-flex">
-      {/* Sidebar: terima props isOpen dan onClose */}
       <SidebarComponent
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
       <div className="dashboard-layout flex-grow-1 d-flex flex-column">
-        {/* Top navbar: terima props onToggleSidebar */}
         <TopNavbarComponent
           onToggleSidebar={() => setSidebarOpen((prev) => !prev)}
         />
@@ -360,9 +288,7 @@ function DashboardPage() {
         <main className="dashboard-main p-3 p-md-4">
           <Container fluid>
 
-            {/* ====================================
-                BARIS 1: 4 Kartu Ringkasan Keuangan
-                ==================================== */}
+            {/* BARIS 1: 4 Kartu Ringkasan Keuangan */}
             <Row className="g-3 g-md-4 mb-3">
               {kartuRingkasan.map((kartu, index) => {
                 const IconComp = kartu.icon;
@@ -384,12 +310,10 @@ function DashboardPage() {
                               {kartu.suffix || ""}
                             </div>
                           </div>
-                          {/* Ikon di sudut kanan atas */}
                           <div className={`summary-icon ${kartu.iconBg} ${kartu.iconColor}`}>
                             <IconComp size={20} />
                           </div>
                         </div>
-                        {/* Badge persentase perubahan */}
                         <span className={`summary-pill ${kartu.badgeColor}`}>
                           {kartu.badge}
                         </span>
@@ -400,14 +324,11 @@ function DashboardPage() {
               })}
             </Row>
 
-            {/* ====================================
-                BARIS 2: Chart Income vs Expenses + Donut
-                ==================================== */}
+            {/* BARIS 2: Chart Income vs Expenses + Donut */}
             <Row className="g-3 g-md-4">
-              {/* Chart garis: Income vs Expenses */}
-              <Col lg={8}>
+              <Col lg={8} xs={12}>
                 <Card className="shadow-sm border-0 h-100 dashboard-card card-hover anim-fade-up anim-d4">
-                  <Card.Body>
+                  <Card.Body className="p-3 p-md-4">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div>
                         <h5 className="mb-1 fw-semibold">Income vs Expenses</h5>
@@ -426,10 +347,9 @@ function DashboardPage() {
                 </Card>
               </Col>
 
-              {/* Chart donut: Spending Categories */}
-              <Col lg={4}>
+              <Col lg={4} xs={12}>
                 <Card className="shadow-sm border-0 h-100 dashboard-card card-hover anim-fade-right anim-d5">
-                  <Card.Body>
+                  <Card.Body className="p-3 p-md-4">
                     <h5 className="mb-1 fw-semibold">Spending Categories</h5>
                     <small className="text-muted">This month breakdown</small>
                     <div className="d-flex flex-column align-items-center mt-3">
@@ -439,7 +359,6 @@ function DashboardPage() {
                           options={donutChartOptions}
                         />
                       </div>
-                      {/* Legend manual - daftar kategori + jumlah */}
                       <div className="mt-3 w-100 px-2">
                         {kategoriPengeluaran.map((kat) => (
                           <div
@@ -447,7 +366,6 @@ function DashboardPage() {
                             className="d-flex justify-content-between align-items-center small mb-2"
                           >
                             <div className="d-flex align-items-center gap-2">
-                              {/* Titik warna kategori */}
                               <span
                                 className="category-dot"
                                 style={{ background: kat.warna }}
@@ -466,14 +384,11 @@ function DashboardPage() {
               </Col>
             </Row>
 
-            {/* ====================================
-                BARIS 3: Tabel Transaksi + Saving Goals
-                ==================================== */}
+            {/* BARIS 3: Tabel Transaksi + Saving Goals */}
             <Row className="g-3 g-md-4 mt-1">
-              {/* Tabel transaksi terakhir */}
-              <Col lg={8}>
+              <Col lg={8} xs={12}>
                 <Card className="shadow-sm border-0 mb-4 dashboard-card card-hover anim-fade-up anim-d5">
-                  <Card.Body>
+                  <Card.Body className="p-3 p-md-4">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <div>
                         <h5 className="mb-1 fw-semibold">Recent Transactions</h5>
@@ -482,83 +397,87 @@ function DashboardPage() {
                         </small>
                       </div>
                     </div>
-                    <Table hover responsive className="mb-0 align-middle">
-                      <thead>
-                        <tr>
-                          <th className="text-uppercase small fw-semibold text-muted">
-                            Date
-                          </th>
-                          <th className="text-uppercase small fw-semibold text-muted">
-                            Transaction
-                          </th>
-                          <th className="text-uppercase small fw-semibold text-muted d-none d-md-table-cell">
-                            Category
-                          </th>
-                          <th className="text-end text-uppercase small fw-semibold text-muted">
-                            Amount
-                          </th>
-                          <th className="text-center text-uppercase small fw-semibold text-muted d-none d-sm-table-cell">
-                            Status
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {daftarTransaksi.map((trx) => (
-                          <tr key={trx.id} className="transaction-row">
-                            <td className="py-3 small text-muted">
-                              {trx.tanggal}
-                            </td>
-                            <td className="py-3">
-                              <div className="d-flex align-items-center">
-                                {/* Ikon transaksi dengan warna sesuai tipe */}
-                                <span
-                                  className={`transaction-icon ${trx.tipe === "income"
-                                      ? "bg-success bg-opacity-10 text-success"
-                                      : "bg-secondary bg-opacity-10 text-secondary"
-                                    }`}
-                                >
-                                  {getTransactionIcon(trx.ikon)}
-                                </span>
-                                <span className="fw-medium">{trx.nama}</span>
-                              </div>
-                            </td>
-                            {/* Kategori disembunyikan di mobile kecil */}
-                            <td className="py-3 text-muted d-none d-md-table-cell">
-                              {trx.kategori}
-                            </td>
-                            <td
-                              className={`py-3 text-end fw-semibold ${trx.tipe === "income"
-                                  ? "text-success"
-                                  : "text-danger"
-                                }`}
-                            >
-                              {trx.tipe === "income" ? "+" : "-"}$
-                              {formatUang(trx.jumlah)}
-                            </td>
-                            <td className="py-3 text-center d-none d-sm-table-cell">
-                              <Badge
-                                bg={
-                                  trx.status === "Completed"
-                                    ? "success"
-                                    : "warning"
-                                }
-                                className="status-badge"
-                              >
-                                {trx.status}
-                              </Badge>
-                            </td>
+                    {displayTransactions.length === 0 ? (
+                      <div className="text-center py-4 text-muted">
+                        <p className="mb-1">No transactions yet</p>
+                        <small>Add your first transaction to see it here</small>
+                      </div>
+                    ) : (
+                      <Table hover responsive className="mb-0 align-middle">
+                        <thead>
+                          <tr>
+                            <th className="text-uppercase small fw-semibold text-muted">
+                              Date
+                            </th>
+                            <th className="text-uppercase small fw-semibold text-muted">
+                              Transaction
+                            </th>
+                            <th className="text-uppercase small fw-semibold text-muted d-none d-md-table-cell">
+                              Category
+                            </th>
+                            <th className="text-end text-uppercase small fw-semibold text-muted">
+                              Amount
+                            </th>
+                            <th className="text-center text-uppercase small fw-semibold text-muted d-none d-sm-table-cell">
+                              Status
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
+                        </thead>
+                        <tbody>
+                          {displayTransactions.map((trx) => (
+                            <tr key={trx.id} className="transaction-row">
+                              <td className="py-3 small text-muted">
+                                {trx.tanggal}
+                              </td>
+                              <td className="py-3">
+                                <div className="d-flex align-items-center">
+                                  <span
+                                    className={`transaction-icon ${trx.tipe === "income"
+                                        ? "bg-success bg-opacity-10 text-success"
+                                        : "bg-secondary bg-opacity-10 text-secondary"
+                                      }`}
+                                  >
+                                    {getTransactionIcon(trx.ikon)}
+                                  </span>
+                                  <span className="fw-medium">{trx.nama}</span>
+                                </div>
+                              </td>
+                              <td className="py-3 text-muted d-none d-md-table-cell">
+                                {trx.kategori}
+                              </td>
+                              <td
+                                className={`py-3 text-end fw-semibold ${trx.tipe === "income"
+                                    ? "text-success"
+                                    : "text-danger"
+                                  }`}
+                              >
+                                {trx.tipe === "income" ? "+" : "-"}$
+                                {formatUang(trx.jumlah)}
+                              </td>
+                              <td className="py-3 text-center d-none d-sm-table-cell">
+                                <Badge
+                                  bg={
+                                    trx.status === "Completed"
+                                      ? "success"
+                                      : "warning"
+                                  }
+                                  className="status-badge"
+                                >
+                                  {trx.status}
+                                </Badge>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    )}
                   </Card.Body>
                 </Card>
               </Col>
 
-              {/* Kartu Saving Goals */}
-              <Col lg={4}>
+              <Col lg={4} xs={12}>
                 <Card className="shadow-sm border-0 h-100 dashboard-card card-hover anim-fade-right anim-d6">
-                  <Card.Body className="d-flex flex-column justify-content-between">
+                  <Card.Body className="d-flex flex-column justify-content-between p-3 p-md-4">
                     <div className="mb-3">
                       <h5 className="mb-1 fw-semibold">Saving Goals</h5>
                       <small className="text-muted">
@@ -566,7 +485,6 @@ function DashboardPage() {
                       </small>
                     </div>
 
-                    {/* Circular progress SVG */}
                     <div className="d-flex align-items-center justify-content-between mb-3 saving-goals-inner">
                       <div>
                         <div className="d-flex justify-content-between mb-1 small">
@@ -583,10 +501,8 @@ function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* SVG circular progress bar */}
                       <div className="circular-progress">
                         <svg width="120" height="120" viewBox="0 0 120 120">
-                          {/* Lingkaran background (abu-abu) */}
                           <circle
                             cx="60"
                             cy="60"
@@ -595,7 +511,6 @@ function DashboardPage() {
                             stroke="#e2e8f0"
                             strokeWidth="10"
                           />
-                          {/* Lingkaran progress (hijau) */}
                           <circle
                             cx="60"
                             cy="60"
@@ -608,7 +523,6 @@ function DashboardPage() {
                             strokeDashoffset={strokeOffset}
                             className="progress-circle"
                           />
-                          {/* Teks persentase di tengah */}
                           <text
                             x="60"
                             y="55"
@@ -629,7 +543,6 @@ function DashboardPage() {
                       </div>
                     </div>
 
-                    {/* Tombol tambah tabungan */}
                     <button className="btn-add-savings">
                       <Plus size={18} className="me-2" />
                       Add to Savings

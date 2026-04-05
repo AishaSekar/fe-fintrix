@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { transactionAPI, analyticsAPI } from "../../services/api.js";
 import SidebarComponent from "../../components/SidebarComponent";
 import TopNavbarComponent from "../../components/TopNavbarComponent";
 import {
@@ -52,91 +53,12 @@ ChartJS.register(
   Filler
 );
 
-// ===========================================
-// DATA DUMMY (fallback jika API belum ada data)
-// ===========================================
-
 const DEFAULT_STATS = {
   totalBalance: 0,
   income: 0,
   expenses: 0,
   savingsGoal: 0,
-  recentTransactions: [],
 };
-
-// Data transaksi terakhir
-const daftarTransaksi = [
-  {
-    id: 1,
-    nama: "Netflix Subscription",
-    jumlah: 15.99,
-    tipe: "expense",
-    tanggal: "Mar 08, 2026",
-    kategori: "Entertainment",
-    ikon: "tv",
-    status: "Completed",
-  },
-  {
-    id: 2,
-    nama: "Salary Payment",
-    jumlah: 8240,
-    tipe: "income",
-    tanggal: "Mar 05, 2026",
-    kategori: "Income",
-    ikon: "trending",
-    status: "Completed",
-  },
-  {
-    id: 3,
-    nama: "Grocery Store",
-    jumlah: 127.5,
-    tipe: "expense",
-    tanggal: "Mar 04, 2026",
-    kategori: "Food",
-    ikon: "cart",
-    status: "Completed",
-  },
-  {
-    id: 4,
-    nama: "Electric Bill",
-    jumlah: 89,
-    tipe: "expense",
-    tanggal: "Mar 03, 2026",
-    kategori: "Bills",
-    ikon: "zap",
-    status: "Pending",
-  },
-  {
-    id: 5,
-    nama: "Freelance Project",
-    jumlah: 1200,
-    tipe: "income",
-    tanggal: "Mar 01, 2026",
-    kategori: "Income",
-    ikon: "trending",
-    status: "Completed",
-  },
-  {
-    id: 6,
-    nama: "Coffee Shop",
-    jumlah: 12.5,
-    tipe: "expense",
-    tanggal: "Feb 28, 2026",
-    kategori: "Food",
-    ikon: "coffee",
-    status: "Completed",
-  },
-  {
-    id: 7,
-    nama: "Rent Payment",
-    jumlah: 1500,
-    tipe: "expense",
-    tanggal: "Feb 25, 2026",
-    kategori: "Housing",
-    ikon: "home",
-    status: "Completed",
-  },
-];
 
 // Data pengeluaran per kategori (buat chart donut)
 const kategoriPengeluaran = [
@@ -236,22 +158,40 @@ function formatUang(angka) {
 // KOMPONEN UTAMA: DashboardPage
 // ==========================================
 function DashboardPage() {
-  const { user, getUserStats } = useAuth();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [stats, setStats]             = useState(DEFAULT_STATS);
-  const [statsLoading, setStatsLoading] = useState(true);
+  const { user } = useAuth();
+  const [sidebarOpen, setSidebarOpen]       = useState(false);
+  const [stats, setStats]                   = useState(DEFAULT_STATS);
+  const [statsLoading, setStatsLoading]     = useState(true);
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
-  // Ambil stats dari API saat komponen mount
+  // Ambil data dari API saat komponen mount
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchAll = async () => {
       setStatsLoading(true);
-      const result = await getUserStats();
-      if (result.success) {
-        setStats(result.data);
+      try {
+        const [summaryRes, txRes] = await Promise.all([
+          analyticsAPI.getSummary(),
+          transactionAPI.getAll(),
+        ]);
+        const s = summaryRes.data?.data;
+        if (s) {
+          setStats({
+            totalBalance: s.balance,
+            income: s.totalIncome,
+            expenses: s.totalExpense,
+            savingsGoal: 0,
+          });
+        }
+        // Ambil 7 transaksi terbaru
+        const txList = txRes.data?.data || [];
+        setRecentTransactions(txList.slice(0, 7));
+      } catch {
+        // gagal fetch — pakai default state
+      } finally {
+        setStatsLoading(false);
       }
-      setStatsLoading(false);
     };
-    fetchStats();
+    fetchAll();
   }, []);
 
   // Mapping data API ke format ringkasanKeuangan
@@ -262,7 +202,7 @@ function DashboardPage() {
     savingsPercent:  stats.savingsGoal    ?? 0,
   };
 
-  // Hitung persentase tabungan
+  // Hitung persentase tabungan (dari target lokal)
   const persen = Math.round(
     (targetTabungan.current / targetTabungan.goal) * 100
   );
@@ -470,7 +410,7 @@ function DashboardPage() {
                 BARIS 3: Tabel Transaksi + Saving Goals
                 ==================================== */}
             <Row className="g-3 g-md-4 mt-1">
-              {/* Tabel transaksi terakhir */}
+              {/* Tabel transaksi terbaru dari API */}
               <Col lg={8}>
                 <Card className="shadow-sm border-0 mb-4 dashboard-card card-hover anim-fade-up anim-d5">
                   <Card.Body>
@@ -482,75 +422,49 @@ function DashboardPage() {
                         </small>
                       </div>
                     </div>
+                    {recentTransactions.length === 0 ? (
+                      <div className="text-center text-muted py-4 small">
+                        No transactions yet. <a href="/transactions">Add your first transaction →</a>
+                      </div>
+                    ) : (
                     <Table hover responsive className="mb-0 align-middle">
                       <thead>
                         <tr>
-                          <th className="text-uppercase small fw-semibold text-muted">
-                            Date
-                          </th>
-                          <th className="text-uppercase small fw-semibold text-muted">
-                            Transaction
-                          </th>
-                          <th className="text-uppercase small fw-semibold text-muted d-none d-md-table-cell">
-                            Category
-                          </th>
-                          <th className="text-end text-uppercase small fw-semibold text-muted">
-                            Amount
-                          </th>
-                          <th className="text-center text-uppercase small fw-semibold text-muted d-none d-sm-table-cell">
-                            Status
-                          </th>
+                          <th className="text-uppercase small fw-semibold text-muted">Date</th>
+                          <th className="text-uppercase small fw-semibold text-muted">Transaction</th>
+                          <th className="text-uppercase small fw-semibold text-muted d-none d-md-table-cell">Category</th>
+                          <th className="text-end text-uppercase small fw-semibold text-muted">Amount</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {daftarTransaksi.map((trx) => (
-                          <tr key={trx.id} className="transaction-row">
+                        {recentTransactions.map((trx) => (
+                          <tr key={trx._id} className="transaction-row">
                             <td className="py-3 small text-muted">
-                              {trx.tanggal}
+                              {new Date(trx.date).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })}
                             </td>
                             <td className="py-3">
                               <div className="d-flex align-items-center">
-                                {/* Ikon transaksi dengan warna sesuai tipe */}
-                                <span
-                                  className={`transaction-icon ${trx.tipe === "income"
-                                      ? "bg-success bg-opacity-10 text-success"
-                                      : "bg-secondary bg-opacity-10 text-secondary"
-                                    }`}
-                                >
-                                  {getTransactionIcon(trx.ikon)}
+                                <span className={`transaction-icon ${
+                                  trx.type === "income"
+                                    ? "bg-success bg-opacity-10 text-success"
+                                    : "bg-secondary bg-opacity-10 text-secondary"
+                                }`}>
+                                  {trx.type === "income" ? <TrendingUp size={18} /> : <Wallet size={18} />}
                                 </span>
-                                <span className="fw-medium">{trx.nama}</span>
+                                <span className="fw-medium">{trx.title || trx.category}</span>
                               </div>
                             </td>
-                            {/* Kategori disembunyikan di mobile kecil */}
-                            <td className="py-3 text-muted d-none d-md-table-cell">
-                              {trx.kategori}
-                            </td>
-                            <td
-                              className={`py-3 text-end fw-semibold ${trx.tipe === "income"
-                                  ? "text-success"
-                                  : "text-danger"
-                                }`}
-                            >
-                              {trx.tipe === "income" ? "+" : "-"}$
-                              {formatUang(trx.jumlah)}
-                            </td>
-                            <td className="py-3 text-center d-none d-sm-table-cell">
-                              <Badge
-                                bg={
-                                  trx.status === "Completed"
-                                    ? "success"
-                                    : "warning"
-                                }
-                                className="status-badge"
-                              >
-                                {trx.status}
-                              </Badge>
+                            <td className="py-3 text-muted d-none d-md-table-cell">{trx.category}</td>
+                            <td className={`py-3 text-end fw-semibold ${
+                              trx.type === "income" ? "text-success" : "text-danger"
+                            }`}>
+                              {trx.type === "income" ? "+" : "-"}${formatUang(trx.amount)}
                             </td>
                           </tr>
                         ))}
                       </tbody>
                     </Table>
+                    )}
                   </Card.Body>
                 </Card>
               </Col>

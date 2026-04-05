@@ -1,10 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from "react";
-import axios from "axios";
+import { api } from "../services/api.js";
 
 const AuthContext = createContext();
-
-// Mengambil URL dari file .env
-const API_URL = import.meta.env.VITE_API_URL;
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
@@ -12,100 +9,58 @@ export const useAuth = () => {
   return context;
 };
 
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5050/api";
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Konfigurasi Axios Global
-  const setupAxios = useCallback((token) => {
-    axios.defaults.baseURL = API_URL;
-    axios.defaults.withCredentials = true;
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    } else {
-      delete axios.defaults.headers.common["Authorization"];
-    }
-  }, []);
-
-  useEffect(() => {
-    const token = localStorage.getItem("fintrix_token");
-    setupAxios(token);
-    checkAuthStatus();
-  }, []);
-
-  // Axios interceptor untuk auto-refresh token jika expired
-  useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
-      (response) => response,
-      async (error) => {
-        const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry) {
-          originalRequest._retry = true;
-          const refreshToken = localStorage.getItem("fintrix_refresh_token");
-          if (refreshToken) {
-            try {
-              const res = await axios.post("/auth/refresh-token", { refreshToken });
-              const { token: newToken, refreshToken: newRefresh } = res.data;
-              localStorage.setItem("fintrix_token", newToken);
-              localStorage.setItem("fintrix_refresh_token", newRefresh);
-              setupAxios(newToken);
-              originalRequest.headers["Authorization"] = `Bearer ${newToken}`;
-              return axios(originalRequest);
-            } catch {
-              // Refresh gagal → paksa logout
-              _clearAuth();
-              window.location.href = "/login";
-            }
-          } else {
-            _clearAuth();
-            window.location.href = "/login";
-          }
-        }
-        return Promise.reject(error);
-      }
-    );
-    return () => axios.interceptors.response.eject(interceptor);
-  }, [setupAxios]);
-
-  // Internal helper: bersihkan semua auth state tanpa memanggil API
-  const _clearAuth = () => {
+  // Internal helper: clear semua auth state
+  const _clearAuth = useCallback(() => {
     localStorage.removeItem("fintrix_token");
     localStorage.removeItem("fintrix_refresh_token");
-    delete axios.defaults.headers.common["Authorization"];
+    localStorage.removeItem("fintrix_user");
     setUser(null);
-  };
+  }, []);
 
-  const checkAuthStatus = async () => {
+  // Cek status auth saat app pertama load
+  const checkAuthStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem("fintrix_token");
       if (!token) {
         setLoading(false);
         return;
       }
-      const response = await axios.get("/auth/status");
-      setUser(response.data.user);
+      // Ambil profil user menggunakan token yang tersimpan
+      const response = await api.get("/users/profile");
+      setUser(response.data);
     } catch (err) {
+      // Token invalid / expired → clear auth
       _clearAuth();
     } finally {
       setLoading(false);
     }
-  };
+  }, [_clearAuth]);
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
 
   const login = async (email, password) => {
     try {
       setError(null);
-      const response = await axios.post("/auth/login", { email, password });
+      const response = await api.post("/auth/login", { email, password });
       const { token, refreshToken, ...userData } = response.data;
       localStorage.setItem("fintrix_token", token);
       if (refreshToken) localStorage.setItem("fintrix_refresh_token", refreshToken);
-      setupAxios(token);
+      // Simpan data user
       setUser(userData);
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.message || "Login failed";
+      const msg = err.response?.data?.message || "Login gagal. Coba lagi.";
       setError(msg);
       return { success: false, error: msg };
     }
@@ -114,10 +69,17 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setError(null);
-      await axios.post("/auth/register", userData);
+      const response = await api.post("/auth/register", userData);
+      // Setelah register langsung login (backend sudah return token)
+      const { token, refreshToken, ...user } = response.data;
+      if (token) {
+        localStorage.setItem("fintrix_token", token);
+        if (refreshToken) localStorage.setItem("fintrix_refresh_token", refreshToken);
+        setUser(user);
+      }
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.message || "Registration failed";
+      const msg = err.response?.data?.message || "Registrasi gagal.";
       setError(msg);
       return { success: false, error: msg };
     }
@@ -125,8 +87,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      // Kirim ke backend untuk hapus refresh token dari DB
-      await axios.post("/auth/logout");
+      await api.post("/auth/logout");
     } catch {
       // Tetap lanjut logout walau request gagal
     } finally {
@@ -138,13 +99,28 @@ export const AuthProvider = ({ children }) => {
     window.location.href = `${API_URL}/auth/google`;
   };
 
+  // Dipanggil dari AuthSuccess.jsx setelah redirect Google OAuth
+  const handleGoogleCallback = async (token, refreshToken) => {
+    try {
+      localStorage.setItem("fintrix_token", token);
+      if (refreshToken) localStorage.setItem("fintrix_refresh_token", refreshToken);
+      // Fetch profil setelah token tersimpan
+      const response = await api.get("/users/profile");
+      setUser(response.data);
+      return { success: true, user: response.data };
+    } catch (err) {
+      _clearAuth();
+      return { success: false, error: "Gagal memuat profil." };
+    }
+  };
+
   const forgotPassword = async (email) => {
     try {
       setError(null);
-      await axios.post("/auth/forgot-password", { email });
+      await api.post("/auth/forgot-password", { email });
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to send reset email";
+      const msg = err.response?.data?.message || "Gagal mengirim email reset.";
       setError(msg);
       return { success: false, error: msg };
     }
@@ -153,10 +129,10 @@ export const AuthProvider = ({ children }) => {
   const resetPassword = async (token, password) => {
     try {
       setError(null);
-      await axios.post(`/auth/reset-password/${token}`, { password });
+      await api.post(`/auth/reset-password/${token}`, { password });
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to reset password";
+      const msg = err.response?.data?.message || "Gagal reset password.";
       setError(msg);
       return { success: false, error: msg };
     }
@@ -166,11 +142,11 @@ export const AuthProvider = ({ children }) => {
 
   const getProfile = async () => {
     try {
-      const response = await axios.get("/users/profile");
+      const response = await api.get("/users/profile");
       setUser(response.data);
       return { success: true, data: response.data };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to fetch profile";
+      const msg = err.response?.data?.message || "Gagal mengambil profil.";
       return { success: false, error: msg };
     }
   };
@@ -178,11 +154,11 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = async (profileData) => {
     try {
       setError(null);
-      const response = await axios.put("/users/profile", profileData);
+      const response = await api.put("/users/profile", profileData);
       setUser((prev) => ({ ...prev, ...response.data }));
       return { success: true, data: response.data };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to update profile";
+      const msg = err.response?.data?.message || "Gagal update profil.";
       setError(msg);
       return { success: false, error: msg };
     }
@@ -190,11 +166,11 @@ export const AuthProvider = ({ children }) => {
 
   const deleteAccount = async () => {
     try {
-      await axios.delete("/users/profile");
+      await api.delete("/users/profile");
       _clearAuth();
       return { success: true };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to delete account";
+      const msg = err.response?.data?.message || "Gagal hapus akun.";
       return { success: false, error: msg };
     }
   };
@@ -203,10 +179,10 @@ export const AuthProvider = ({ children }) => {
 
   const getUserStats = async () => {
     try {
-      const response = await axios.get("/users/stats");
+      const response = await api.get("/users/stats");
       return { success: true, data: response.data };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to fetch stats";
+      const msg = err.response?.data?.message || "Gagal mengambil statistik.";
       return { success: false, error: msg };
     }
   };
@@ -215,22 +191,22 @@ export const AuthProvider = ({ children }) => {
 
   const enableTwoFactor = async () => {
     try {
-      const response = await axios.post("/users/enable-2fa");
+      const response = await api.post("/users/enable-2fa");
       setUser((prev) => ({ ...prev, twoFactorEnabled: true }));
       return { success: true, data: response.data };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to enable 2FA";
+      const msg = err.response?.data?.message || "Gagal aktifkan 2FA.";
       return { success: false, error: msg };
     }
   };
 
   const disableTwoFactor = async () => {
     try {
-      const response = await axios.post("/users/disable-2fa");
+      const response = await api.post("/users/disable-2fa");
       setUser((prev) => ({ ...prev, twoFactorEnabled: false }));
       return { success: true, data: response.data };
     } catch (err) {
-      const msg = err.response?.data?.message || "Failed to disable 2FA";
+      const msg = err.response?.data?.message || "Gagal nonaktifkan 2FA.";
       return { success: false, error: msg };
     }
   };
@@ -245,6 +221,7 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     googleLogin,
+    handleGoogleCallback,
     forgotPassword,
     resetPassword,
     // Profile

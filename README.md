@@ -137,6 +137,7 @@ VITE_API_URL=http://localhost:5000/api
 ## 📞 Kontributor
 - **Naufal Murtadho** - Backend Developer
 - **Aisha Sekar** - Frontend Developer
+- - **Ghatan Adya Pratama** - Frontend Developer
 
 ## 📝 Lisensi
 MIT License

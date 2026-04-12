@@ -61,7 +61,7 @@ function AuthSuccessPage() {
     };
 
     processGoogleAuth();
-  }, []);
+  },);
 
   return (
     <div

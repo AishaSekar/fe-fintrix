@@ -27,7 +27,7 @@ If you are developing a production application, we recommend using TypeScript wi
 - **Database**: MongoDB Cloud
 - **API**: 11 RESTful endpoints
 
-### Frontend (Aisha)
+### Frontend (Aisha, Ghatan)
 - **Teknologi**: React, Vite, Bootstrap
 - **State Management**: React Hooks
 - **UI**: Responsive design
